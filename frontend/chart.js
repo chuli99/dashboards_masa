@@ -29,6 +29,21 @@ async function fetchStats(codigo, period, valormin, valormax) {
   return res.json();
 }
 
+const TOOLTIP_OPTS = {
+  filter: (item) => item.raw != null,
+  callbacks: {
+    label: (ctx) => ctx.raw != null ? `${ctx.dataset.label}: ${ctx.raw.toFixed(4)}` : null,
+  },
+  backgroundColor: '#0f172a',
+  titleColor: '#94a3b8',
+  bodyColor: '#f1f5f9',
+  padding: 10,
+  cornerRadius: 6,
+  displayColors: true,
+  boxWidth: 8,
+  boxHeight: 8,
+};
+
 function renderChart(period, data) {
   const canvas = document.getElementById(`chart-${period}`);
   const noData = document.getElementById(`nodata-${period}`);
@@ -47,34 +62,57 @@ function renderChart(period, data) {
   canvas.style.display = 'block';
   noData.style.display = 'none';
 
+  const isLine = period === '12h';
+
   chartInstances[period] = new Chart(canvas, {
-    type: 'bar',
+    type: isLine ? 'line' : 'bar',
     data: {
       labels: data.labels,
-      datasets: SERIES.map(({ key, label, color }) => ({
+      datasets: SERIES.map(({ key, label, color }) => isLine ? {
+        label,
+        data: data[key],
+        borderColor: color,
+        backgroundColor: color + '18',
+        borderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: color,
+        pointBorderColor: '#fff',
+        pointBorderWidth: 1.5,
+        tension: 0.4,
+        fill: false,
+        spanGaps: false,
+      } : {
         label,
         data: data[key],
         backgroundColor: color + 'cc',
         borderColor: color,
         borderWidth: 1,
         borderRadius: 3,
-      })),
+      }),
     },
     options: {
       responsive: true,
       plugins: {
-        legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
-        tooltip: {
-          filter: (item) => item.raw != null,
-          callbacks: {
-            label: (ctx) => ctx.raw != null ? `${ctx.dataset.label}: ${ctx.raw.toFixed(4)}` : null,
-          },
+        legend: {
+          position: 'top',
+          labels: { boxWidth: isLine ? 16 : 12, font: { size: 11 }, usePointStyle: isLine },
         },
+        tooltip: TOOLTIP_OPTS,
       },
       scales: {
-        x: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } } },
-        y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } } },
+        x: {
+          grid: { color: '#f1f5f9' },
+          ticks: { font: { size: 11 }, color: '#94a3b8' },
+          border: { color: '#e2e8f0' },
+        },
+        y: {
+          grid: { color: '#f1f5f9' },
+          ticks: { font: { size: 11 }, color: '#94a3b8' },
+          border: { color: '#e2e8f0' },
+        },
       },
+      ...(isLine && { interaction: { mode: 'index', intersect: false } }),
     },
   });
 }
