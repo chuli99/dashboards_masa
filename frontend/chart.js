@@ -17,8 +17,10 @@ async function fetchVariable(codigo) {
   return res.json();
 }
 
+const FROM_LAST_DATA = document.body.dataset.historico === '1';
+
 async function fetchStats(codigo, period, valormin, valormax) {
-  const params = new URLSearchParams({ period, valormin, valormax });
+  const params = new URLSearchParams({ period, valormin, valormax, from_last_data: FROM_LAST_DATA });
   const res = await fetch(`${API_URL}/api/variables/${codigo}/stats?${params}`);
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
