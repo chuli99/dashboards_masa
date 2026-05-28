@@ -1,0 +1,241 @@
+import logging
+from datetime import datetime, timedelta
+from typing import Optional
+
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+from aiocache import SimpleMemoryCache
+
+from .config import settings
+from .database import engine
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+logger = logging.getLogger(__name__)
+
+app = FastAPI(title="PLC Dashboard API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
+
+cache = SimpleMemoryCache()
+
+_QUERY_STATS_30D = """
+SELECT
+  FORMAT(DATEADD(MINUTE, 175, PN._TIMESTAMP), 'dd-MM') AS Etiqueta,
+  CASE WHEN AVG(PN._VALOR) < :vmin THEN AVG(PN._VALOR) ELSE NULL END AS Bajo,
+  CASE WHEN AVG(PN._VALOR) >= :vmin AND AVG(PN._VALOR) <= :vmax THEN AVG(PN._VALOR) ELSE NULL END AS Medio,
+  CASE WHEN AVG(PN._VALOR) > :vmax THEN AVG(PN._VALOR) ELSE NULL END AS Alto
+FROM PLCNarrow PN
+RIGHT JOIN Variables V ON PN._VARIABLE = V.CODIGO
+WHERE PN._TIMESTAMP >= DATEADD(DAY, -30, GETDATE())
+  AND PN._VARIABLE = :codigo
+GROUP BY FORMAT(DATEADD(MINUTE, 175, PN._TIMESTAMP), 'dd-MM')
+ORDER BY MIN(PN._TIMESTAMP)
+"""
+
+_QUERY_STATS_7D = """
+SELECT
+  FORMAT(DATEADD(MINUTE, 175, PN._TIMESTAMP), 'dd-MM') AS Etiqueta,
+  CASE WHEN AVG(PN._VALOR) < :vmin THEN AVG(PN._VALOR) ELSE NULL END AS Bajo,
+  CASE WHEN AVG(PN._VALOR) >= :vmin AND AVG(PN._VALOR) <= :vmax THEN AVG(PN._VALOR) ELSE NULL END AS Medio,
+  CASE WHEN AVG(PN._VALOR) > :vmax THEN AVG(PN._VALOR) ELSE NULL END AS Alto
+FROM PLCNarrow PN
+RIGHT JOIN Variables V ON PN._VARIABLE = V.CODIGO
+WHERE PN._TIMESTAMP >= DATEADD(DAY, -7, GETDATE())
+  AND PN._VARIABLE = :codigo
+GROUP BY FORMAT(DATEADD(MINUTE, 175, PN._TIMESTAMP), 'dd-MM')
+ORDER BY MIN(PN._TIMESTAMP)
+"""
+
+_QUERY_STATS_12H = """
+SELECT
+  FORMAT(DATEADD(MINUTE, 175, PN._TIMESTAMP), 'HH:00') AS Etiqueta,
+  CAST(CASE WHEN AVG(PN._VALOR) < :vmin THEN AVG(PN._VALOR) ELSE NULL END AS FLOAT) AS Bajo,
+  CAST(CASE WHEN AVG(PN._VALOR) >= :vmin AND AVG(PN._VALOR) <= :vmax THEN AVG(PN._VALOR) ELSE NULL END AS FLOAT) AS Medio,
+  CAST(CASE WHEN AVG(PN._VALOR) > :vmax THEN AVG(PN._VALOR) ELSE NULL END AS FLOAT) AS Alto
+FROM PLCNarrow PN
+RIGHT JOIN Variables V ON PN._VARIABLE = V.CODIGO
+WHERE PN._TIMESTAMP >= DATEADD(HOUR, -12, GETDATE())
+  AND PN._VARIABLE = :codigo
+GROUP BY FORMAT(DATEADD(MINUTE, 175, PN._TIMESTAMP), 'HH:00')
+ORDER BY MIN(PN._TIMESTAMP)
+"""
+
+_STATS_QUERIES = {"30d": _QUERY_STATS_30D, "7d": _QUERY_STATS_7D, "12h": _QUERY_STATS_12H}
+
+# Query base sin agrupamiento
+_QUERY = """
+SELECT
+    DATEADD(MINUTE, 175, PN._TIMESTAMP) AS Fecha,
+    PN._VALOR AS Valor
+FROM PLCNarrow PN
+RIGHT JOIN Variables V ON PN._VARIABLE = V.CODIGO
+WHERE PN._VARIABLE = :codigo
+  AND PN._TIMESTAMP >= :start_date
+  AND PN._TIMESTAMP <= :end_date
+ORDER BY Fecha ASC
+"""
+
+# Downsample por hora (rangos > 7 días)
+_QUERY_DS_HORA = """
+SELECT
+    DATEADD(HOUR, DATEDIFF(HOUR, 0, DATEADD(MINUTE, 175, PN._TIMESTAMP)), 0) AS Fecha,
+    AVG(PN._VALOR) AS Valor
+FROM PLCNarrow PN
+RIGHT JOIN Variables V ON PN._VARIABLE = V.CODIGO
+WHERE PN._VARIABLE = :codigo
+  AND PN._TIMESTAMP >= :start_date
+  AND PN._TIMESTAMP <= :end_date
+GROUP BY DATEADD(HOUR, DATEDIFF(HOUR, 0, DATEADD(MINUTE, 175, PN._TIMESTAMP)), 0)
+ORDER BY Fecha ASC
+"""
+
+# Downsample por minuto (rangos <= 7 días)
+_QUERY_DS_MINUTO = """
+SELECT
+    DATEADD(MINUTE, DATEDIFF(MINUTE, 0, DATEADD(MINUTE, 175, PN._TIMESTAMP)), 0) AS Fecha,
+    AVG(PN._VALOR) AS Valor
+FROM PLCNarrow PN
+RIGHT JOIN Variables V ON PN._VARIABLE = V.CODIGO
+WHERE PN._VARIABLE = :codigo
+  AND PN._TIMESTAMP >= :start_date
+  AND PN._TIMESTAMP <= :end_date
+GROUP BY DATEADD(MINUTE, DATEDIFF(MINUTE, 0, DATEADD(MINUTE, 175, PN._TIMESTAMP)), 0)
+ORDER BY Fecha ASC
+"""
+
+
+@app.get("/api/variables/{codigo}")
+async def get_variable(codigo: int):
+    cache_key = f"var:{codigo}"
+    cached = await cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        async with engine.connect() as conn:
+            result = await conn.execute(
+                text("SELECT CODIGO, DESCRIPCION, VALORMIN, VALORMAX FROM Variables WHERE CODIGO = :codigo"),
+                {"codigo": codigo},
+            )
+            row = result.fetchone()
+    except Exception as e:
+        logger.error(f"Error variable {codigo}: {e}")
+        raise HTTPException(500, f"Error al consultar la base de datos: {e}")
+
+    if row is None:
+        raise HTTPException(404, f"Variable {codigo} no encontrada")
+
+    response = {
+        "codigo": row[0],
+        "nombre": row[1],
+        "valormin": float(row[2]) if row[2] is not None else 0,
+        "valormax": float(row[3]) if row[3] is not None else 100,
+    }
+    await cache.set(cache_key, response, ttl=settings.cache_ttl)
+    return response
+
+
+@app.get("/health")
+async def health():
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        return {"status": "ok"}
+    except Exception as e:
+        logger.error(f"Health check fallido: {e}")
+        raise HTTPException(500, f"DB no disponible: {e}")
+
+
+@app.get("/api/variables/{codigo}/timeseries")
+async def get_timeseries(
+    codigo: int,
+    days: int = Query(30, ge=1),
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+    downsample: bool = False,
+):
+    end = end_date or datetime.utcnow()
+    start = start_date or (end - timedelta(days=days))
+
+    cache_key = f"{codigo}:{start.isoformat()}:{end.isoformat()}:{downsample}"
+
+    cached = await cache.get(cache_key)
+    if cached is not None:
+        logger.info(f"Cache hit: {cache_key}")
+        return cached
+
+    delta_dias = (end - start).days
+    if downsample:
+        query = _QUERY_DS_MINUTO if delta_dias <= 7 else _QUERY_DS_HORA
+    else:
+        query = _QUERY
+
+    try:
+        async with engine.connect() as conn:
+            result = await conn.execute(
+                text(query),
+                {"codigo": codigo, "start_date": start, "end_date": end},
+            )
+            rows = result.fetchall()
+    except Exception as e:
+        logger.error(f"Error en query codigo={codigo}: {e}")
+        raise HTTPException(500, f"Error al consultar la base de datos: {e}")
+
+    timestamps = []
+    valores = []
+    for fecha, valor in rows:
+        if fecha is not None:
+            timestamps.append(int(fecha.timestamp()))
+            valores.append(float(valor) if valor is not None else None)
+
+    response = {
+        "data": [timestamps, valores],
+        "series": ["Fecha", "Valor"],
+        "codigo": codigo,
+        "count": len(timestamps),
+        "range": {"start": start.isoformat(), "end": end.isoformat()},
+    }
+
+    await cache.set(cache_key, response, ttl=settings.cache_ttl)
+    return response
+
+
+@app.get("/api/variables/{codigo}/stats")
+async def get_stats(
+    codigo: int,
+    period: str = Query("7d", pattern="^(30d|7d|12h)$"),
+    valormin: float = 0,
+    valormax: float = 100,
+):
+    cache_key = f"stats:{codigo}:{period}:{valormin}:{valormax}"
+    cached = await cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        async with engine.connect() as conn:
+            result = await conn.execute(
+                text(_STATS_QUERIES[period]),
+                {"codigo": codigo, "vmin": valormin, "vmax": valormax},
+            )
+            rows = result.fetchall()
+    except Exception as e:
+        logger.error(f"Error stats {period} codigo={codigo}: {e}")
+        raise HTTPException(500, f"Error al consultar la base de datos: {e}")
+
+    labels, bajo, medio, alto = [], [], [], []
+    for etiqueta, b, m, a in rows:
+        labels.append(etiqueta)
+        bajo.append(float(b) if b is not None else None)
+        medio.append(float(m) if m is not None else None)
+        alto.append(float(a) if a is not None else None)
+
+    response = {"labels": labels, "bajo": bajo, "medio": medio, "alto": alto}
+    await cache.set(cache_key, response, ttl=settings.cache_ttl)
+    return response
