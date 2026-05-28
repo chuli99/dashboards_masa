@@ -62,7 +62,7 @@ function renderChart(period, data) {
   canvas.style.display = 'block';
   noData.style.display = 'none';
 
-  const isLine = period === '12h';
+  const isLine = period === '30d';
 
   chartInstances[period] = new Chart(canvas, {
     type: isLine ? 'line' : 'bar',
