@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PLC Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+
+    #header-info { display: flex; flex-direction: column; gap: 2px; }
+    #header-title { font-size: 1rem; font-weight: 600; letter-spacing: 0.02em; }
+    #header-sub { font-size: 0.75rem; color: #94a3b8; }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 18px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button:hover:not(:disabled) { background: #1d4ed8; }
+    button:disabled { background: #475569; cursor: not-allowed; }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    #error {
+      display: none;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 0.85rem;
+    }
+
+    .chart-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .chart-card h2 {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 14px;
+    }
+
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .charts-row { grid-template-columns: 1fr; }
+    }
+
+    .loading {
+      color: #64748b;
+      font-size: 0.875rem;
+      padding: 40px 0;
+      text-align: center;
+      display: none;
+    }
+
+    .loading::before {
+      content: '';
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #cbd5e1;
+      border-top-color: #2563eb;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .no-data {
+      color: #94a3b8;
+      text-align: center;
+      padding: 40px 0;
+      font-size: 0.9rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div id="header-info">
+    <span id="header-title">PLC Dashboard</span>
+    <span id="header-sub"></span>
+  </div>
+  <button id="btnRefresh" disabled>Actualizar</button>
+</header>
+
+<main>
+  <div id="error"></div>
+
+  <div class="chart-card">
+    <h2>Últimos 30 días</h2>
+    <div class="loading" id="loading-30d">Cargando...</div>
+    <p class="no-data" id="nodata-30d">Sin datos para el período.</p>
+    <canvas id="chart-30d" height="80"></canvas>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <h2>Últimos 7 días</h2>
+      <div class="loading" id="loading-7d">Cargando...</div>
+      <p class="no-data" id="nodata-7d">Sin datos para el período.</p>
+      <canvas id="chart-7d"></canvas>
+    </div>
+    <div class="chart-card">
+      <h2>Últimas 12 horas</h2>
+      <div class="loading" id="loading-12h">Cargando...</div>
+      <p class="no-data" id="nodata-12h">Sin datos para el período.</p>
+      <canvas id="chart-12h"></canvas>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="chart.js"></script>
+</body>
+</html>
