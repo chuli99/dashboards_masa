@@ -68,6 +68,53 @@ ORDER BY MIN(PN._TIMESTAMP)
 
 _STATS_QUERIES = {"30d": _QUERY_STATS_30D, "7d": _QUERY_STATS_7D, "12h": _QUERY_STATS_12H}
 
+_QUERY_HIST_30D = """
+WITH Rango AS (SELECT MAX(_TIMESTAMP) AS fin FROM PLCNarrow WHERE _VARIABLE = :codigo)
+SELECT
+  FORMAT(DATEADD(MINUTE, 175, PN._TIMESTAMP), 'dd-MM') AS Etiqueta,
+  CASE WHEN AVG(PN._VALOR) < :vmin THEN AVG(PN._VALOR) ELSE NULL END AS Bajo,
+  CASE WHEN AVG(PN._VALOR) >= :vmin AND AVG(PN._VALOR) <= :vmax THEN AVG(PN._VALOR) ELSE NULL END AS Medio,
+  CASE WHEN AVG(PN._VALOR) > :vmax THEN AVG(PN._VALOR) ELSE NULL END AS Alto
+FROM PLCNarrow PN
+JOIN Variables V ON PN._VARIABLE = V.CODIGO
+JOIN Rango ON PN._TIMESTAMP BETWEEN DATEADD(DAY, -30, Rango.fin) AND Rango.fin
+WHERE PN._VARIABLE = :codigo
+GROUP BY FORMAT(DATEADD(MINUTE, 175, PN._TIMESTAMP), 'dd-MM')
+ORDER BY MIN(PN._TIMESTAMP)
+"""
+
+_QUERY_HIST_7D = """
+WITH Rango AS (SELECT MAX(_TIMESTAMP) AS fin FROM PLCNarrow WHERE _VARIABLE = :codigo)
+SELECT
+  FORMAT(DATEADD(MINUTE, 175, PN._TIMESTAMP), 'dd-MM') AS Etiqueta,
+  CASE WHEN AVG(PN._VALOR) < :vmin THEN AVG(PN._VALOR) ELSE NULL END AS Bajo,
+  CASE WHEN AVG(PN._VALOR) >= :vmin AND AVG(PN._VALOR) <= :vmax THEN AVG(PN._VALOR) ELSE NULL END AS Medio,
+  CASE WHEN AVG(PN._VALOR) > :vmax THEN AVG(PN._VALOR) ELSE NULL END AS Alto
+FROM PLCNarrow PN
+JOIN Variables V ON PN._VARIABLE = V.CODIGO
+JOIN Rango ON PN._TIMESTAMP BETWEEN DATEADD(DAY, -7, Rango.fin) AND Rango.fin
+WHERE PN._VARIABLE = :codigo
+GROUP BY FORMAT(DATEADD(MINUTE, 175, PN._TIMESTAMP), 'dd-MM')
+ORDER BY MIN(PN._TIMESTAMP)
+"""
+
+_QUERY_HIST_12H = """
+WITH Rango AS (SELECT MAX(_TIMESTAMP) AS fin FROM PLCNarrow WHERE _VARIABLE = :codigo)
+SELECT
+  FORMAT(DATEADD(MINUTE, 175, PN._TIMESTAMP), 'HH:00') AS Etiqueta,
+  CAST(CASE WHEN AVG(PN._VALOR) < :vmin THEN AVG(PN._VALOR) ELSE NULL END AS FLOAT) AS Bajo,
+  CAST(CASE WHEN AVG(PN._VALOR) >= :vmin AND AVG(PN._VALOR) <= :vmax THEN AVG(PN._VALOR) ELSE NULL END AS FLOAT) AS Medio,
+  CAST(CASE WHEN AVG(PN._VALOR) > :vmax THEN AVG(PN._VALOR) ELSE NULL END AS FLOAT) AS Alto
+FROM PLCNarrow PN
+JOIN Variables V ON PN._VARIABLE = V.CODIGO
+JOIN Rango ON PN._TIMESTAMP BETWEEN DATEADD(HOUR, -12, Rango.fin) AND Rango.fin
+WHERE PN._VARIABLE = :codigo
+GROUP BY FORMAT(DATEADD(MINUTE, 175, PN._TIMESTAMP), 'HH:00')
+ORDER BY MIN(PN._TIMESTAMP)
+"""
+
+_STATS_HIST_QUERIES = {"30d": _QUERY_HIST_30D, "7d": _QUERY_HIST_7D, "12h": _QUERY_HIST_12H}
+
 # Query base sin agrupamiento
 _QUERY = """
 SELECT
@@ -212,16 +259,18 @@ async def get_stats(
     period: str = Query("7d", pattern="^(30d|7d|12h)$"),
     valormin: float = 0,
     valormax: float = 100,
+    from_last_data: bool = False,
 ):
-    cache_key = f"stats:{codigo}:{period}:{valormin}:{valormax}"
+    cache_key = f"stats:{codigo}:{period}:{valormin}:{valormax}:{from_last_data}"
     cached = await cache.get(cache_key)
     if cached is not None:
         return cached
 
+    queries = _STATS_HIST_QUERIES if from_last_data else _STATS_QUERIES
     try:
         async with engine.connect() as conn:
             result = await conn.execute(
-                text(_STATS_QUERIES[period]),
+                text(queries[period]),
                 {"codigo": codigo, "vmin": valormin, "vmax": valormax},
             )
             rows = result.fetchall()
