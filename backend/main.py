@@ -16,6 +16,10 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="PLC Dashboard API")
 
+@app.on_event("startup")
+def on_startup():
+    logger.info(f"DB_SERVER='{settings.db_server}' | DB_NAME='{settings.db_name}'")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
