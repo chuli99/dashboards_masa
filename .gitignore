@@ -6,4 +6,5 @@ __pycache__/
 .DS_Store
 .claude/
 frontend/config.js
+flowsheets_grafana/
 CLAUDE.md
