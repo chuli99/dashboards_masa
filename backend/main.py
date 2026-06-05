@@ -18,7 +18,10 @@ app = FastAPI(title="PLC Dashboard API")
 
 @app.on_event("startup")
 def on_startup():
-    logger.info(f"DB_SERVER='{settings.db_server}' | DB_NAME='{settings.db_name}'")
+    from pathlib import Path
+    api_url = f"http://{settings.sv_ip}:{settings.sv_port}"
+    Path("frontend/config.js").write_text(f'window.API_URL = "{api_url}";\n')
+    logger.info(f"API_URL={api_url}")
 
 app.add_middleware(
     CORSMiddleware,

@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     db_user: str
     db_password: str
     db_driver: str = "ODBC Driver 17 for SQL Server"
+    sv_ip: str = "localhost"
+    sv_port: int = 5050
     cors_origins: list[str] = ["http://localhost:8080"]
     cache_ttl: int = 300
 

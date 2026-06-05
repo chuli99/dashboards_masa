@@ -5,4 +5,5 @@ __pycache__/
 *.pyo
 .DS_Store
 .claude/
+frontend/config.js
 CLAUDE.md

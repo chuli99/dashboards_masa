@@ -53,8 +53,9 @@
   <a href="index.html?codigo=067" class="scada-btn" data-codigo="067" data-decimals="0" style="left:94.07%;top:82.61%" title="LI873">–</a>
 </div>
 
+<script src="config.js"></script>
 <script>
-const API = `http://${window.location.hostname}:5050`;
+const API = window.API_URL || `http://${window.location.hostname}:5050`;
 const REFRESH_MS = 60000;
 
 async function cargarValores() {

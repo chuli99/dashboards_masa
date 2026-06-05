@@ -1,4 +1,4 @@
-const API_URL = `http://${window.location.hostname}:5050`;
+const API_URL = window.API_URL || `http://${window.location.hostname}:5050`;
 
 const SERIES = [
   { key: 'bajo',  label: 'Bajo',  color: '#ef4444' },
