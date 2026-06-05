@@ -1,0 +1,52 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #111;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+}
+
+.mimico-container {
+  position: relative;
+  width: 100%;
+  max-width: 1920px;
+}
+
+.mimico-bg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.scada-btn {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: #96D98D;
+  font-family: monospace;
+  font-size: 0.7vw;
+  font-weight: 600;
+  padding: 2px 5px;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s, outline 0.2s;
+  /* border: 1px solid transparent; */
+}
+
+.scada-btn:hover {
+  background: rgba(0, 0, 0, 0.92);
+  outline: 1px solid #96D98D;
+}
+
+/* Modo debug: agregar clase "debug" al <body> para verificar posicionamiento */
+body.debug .scada-btn {
+  outline: 1px dashed #ff0;
+  background: rgba(0, 0, 0, 0.85);
+}

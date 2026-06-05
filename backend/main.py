@@ -188,6 +188,32 @@ async def get_variable(codigo: int):
     return response
 
 
+@app.get("/api/variables/{codigo}/last")
+async def get_last_value(codigo: int):
+    cache_key = f"last:{codigo}"
+    cached = await cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        async with engine.connect() as conn:
+            result = await conn.execute(
+                text("SELECT TOP 1 _VALOR FROM PLCNarrow WHERE _VARIABLE = :codigo ORDER BY _TIMESTAMP DESC"),
+                {"codigo": codigo},
+            )
+            row = result.fetchone()
+    except Exception as e:
+        logger.error(f"Error last value codigo={codigo}: {e}")
+        raise HTTPException(500, f"Error al consultar la base de datos: {e}")
+
+    if row is None or row[0] is None:
+        raise HTTPException(404, f"Sin datos para variable {codigo}")
+
+    response = {"codigo": codigo, "valor": float(row[0])}
+    await cache.set(cache_key, response, ttl=30)
+    return response
+
+
 @app.get("/health")
 async def health():
     try:

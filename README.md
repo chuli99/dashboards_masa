@@ -111,6 +111,32 @@ curl "http://localhost:8000/api/variables/123/timeseries?start_date=2024-01-01T0
 curl http://localhost:8000/health
 ```
 
+## Flowsheet SCADA
+
+`frontend/flowsheet-tk1.html` es una vista estática que replica el panel ImageIt de Grafana para el Tanque TK-1. Carga una imagen de fondo SCADA con 27 botones superpuestos que redirigen a `index.html?codigo=XXX`.
+
+### Agregar o mover un botón
+
+Cada botón es un `<a>` con coordenadas en `%` (relativas al tamaño de la imagen):
+
+```html
+<a href="index.html?codigo=XXX" class="scada-btn" style="left:50%;top:25%" title="Descripción">LABEL</a>
+```
+
+Las coordenadas provienen del JSON del plugin ImageIt (campo `position.x` / `position.y`), que ya las exporta en porcentaje.
+
+### Modo debug
+
+Agregar la clase `debug` al `<body>` para ver los bordes de todos los botones:
+
+```html
+<body class="debug">
+```
+
+### Relación con el proyecto de gráficos
+
+El mímico actúa como punto de entrada: cada botón lleva a `index.html?codigo=XXX`, donde se muestran los gráficos históricos de esa variable.
+
 ## Notas
 
 - Los valores se agrupan por **día** en 30d y 7d, y por **hora** en 12h.
