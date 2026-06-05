@@ -1,11 +1,12 @@
 import logging
+import time
+import threading
 from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
-from aiocache import SimpleMemoryCache
 
 from .config import settings
 from .database import engine
@@ -22,7 +23,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-cache = SimpleMemoryCache()
+# Cache en memoria thread-safe
+_cache: dict = {}
+_cache_lock = threading.Lock()
+
+
+def _cache_get(key: str):
+    with _cache_lock:
+        entry = _cache.get(key)
+        if entry and time.time() < entry["exp"]:
+            return entry["val"]
+    return None
+
+
+def _cache_set(key: str, val, ttl: int):
+    with _cache_lock:
+        _cache[key] = {"val": val, "exp": time.time() + ttl}
+
 
 _QUERY_STATS_30D = """
 SELECT
@@ -115,7 +132,6 @@ ORDER BY MIN(PN._TIMESTAMP)
 
 _STATS_HIST_QUERIES = {"30d": _QUERY_HIST_30D, "7d": _QUERY_HIST_7D, "12h": _QUERY_HIST_12H}
 
-# Query base sin agrupamiento
 _QUERY = """
 SELECT
     DATEADD(MINUTE, 175, PN._TIMESTAMP) AS Fecha,
@@ -128,7 +144,6 @@ WHERE PN._VARIABLE = :codigo
 ORDER BY Fecha ASC
 """
 
-# Downsample por hora (rangos > 7 días)
 _QUERY_DS_HORA = """
 SELECT
     DATEADD(HOUR, DATEDIFF(HOUR, 0, DATEADD(MINUTE, 175, PN._TIMESTAMP)), 0) AS Fecha,
@@ -142,7 +157,6 @@ GROUP BY DATEADD(HOUR, DATEDIFF(HOUR, 0, DATEADD(MINUTE, 175, PN._TIMESTAMP)), 0
 ORDER BY Fecha ASC
 """
 
-# Downsample por minuto (rangos <= 7 días)
 _QUERY_DS_MINUTO = """
 SELECT
     DATEADD(MINUTE, DATEDIFF(MINUTE, 0, DATEADD(MINUTE, 175, PN._TIMESTAMP)), 0) AS Fecha,
@@ -158,15 +172,15 @@ ORDER BY Fecha ASC
 
 
 @app.get("/api/variables/{codigo}")
-async def get_variable(codigo: int):
+def get_variable(codigo: int):
     cache_key = f"var:{codigo}"
-    cached = await cache.get(cache_key)
+    cached = _cache_get(cache_key)
     if cached is not None:
         return cached
 
     try:
-        async with engine.connect() as conn:
-            result = await conn.execute(
+        with engine.connect() as conn:
+            result = conn.execute(
                 text("SELECT CODIGO, DESCRIPCION, VALORMIN, VALORMAX FROM Variables WHERE CODIGO = :codigo"),
                 {"codigo": codigo},
             )
@@ -184,20 +198,20 @@ async def get_variable(codigo: int):
         "valormin": float(row[2]) if row[2] is not None else 0,
         "valormax": float(row[3]) if row[3] is not None else 100,
     }
-    await cache.set(cache_key, response, ttl=settings.cache_ttl)
+    _cache_set(cache_key, response, settings.cache_ttl)
     return response
 
 
 @app.get("/api/variables/{codigo}/last")
-async def get_last_value(codigo: int):
+def get_last_value(codigo: int):
     cache_key = f"last:{codigo}"
-    cached = await cache.get(cache_key)
+    cached = _cache_get(cache_key)
     if cached is not None:
         return cached
 
     try:
-        async with engine.connect() as conn:
-            result = await conn.execute(
+        with engine.connect() as conn:
+            result = conn.execute(
                 text("SELECT TOP 1 _VALOR FROM PLCNarrow WHERE _VARIABLE = :codigo ORDER BY _TIMESTAMP DESC"),
                 {"codigo": codigo},
             )
@@ -210,15 +224,15 @@ async def get_last_value(codigo: int):
         raise HTTPException(404, f"Sin datos para variable {codigo}")
 
     response = {"codigo": codigo, "valor": float(row[0])}
-    await cache.set(cache_key, response, ttl=30)
+    _cache_set(cache_key, response, 30)
     return response
 
 
 @app.get("/health")
-async def health():
+def health():
     try:
-        async with engine.connect() as conn:
-            await conn.execute(text("SELECT 1"))
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
         return {"status": "ok"}
     except Exception as e:
         logger.error(f"Health check fallido: {e}")
@@ -226,7 +240,7 @@ async def health():
 
 
 @app.get("/api/variables/{codigo}/timeseries")
-async def get_timeseries(
+def get_timeseries(
     codigo: int,
     days: int = Query(30, ge=1),
     start_date: Optional[datetime] = None,
@@ -237,8 +251,7 @@ async def get_timeseries(
     start = start_date or (end - timedelta(days=days))
 
     cache_key = f"{codigo}:{start.isoformat()}:{end.isoformat()}:{downsample}"
-
-    cached = await cache.get(cache_key)
+    cached = _cache_get(cache_key)
     if cached is not None:
         logger.info(f"Cache hit: {cache_key}")
         return cached
@@ -250,8 +263,8 @@ async def get_timeseries(
         query = _QUERY
 
     try:
-        async with engine.connect() as conn:
-            result = await conn.execute(
+        with engine.connect() as conn:
+            result = conn.execute(
                 text(query),
                 {"codigo": codigo, "start_date": start, "end_date": end},
             )
@@ -275,12 +288,12 @@ async def get_timeseries(
         "range": {"start": start.isoformat(), "end": end.isoformat()},
     }
 
-    await cache.set(cache_key, response, ttl=settings.cache_ttl)
+    _cache_set(cache_key, response, settings.cache_ttl)
     return response
 
 
 @app.get("/api/variables/{codigo}/stats")
-async def get_stats(
+def get_stats(
     codigo: int,
     period: str = Query("7d", pattern="^(30d|7d|12h)$"),
     valormin: float = 0,
@@ -288,14 +301,14 @@ async def get_stats(
     from_last_data: bool = False,
 ):
     cache_key = f"stats:{codigo}:{period}:{valormin}:{valormax}:{from_last_data}"
-    cached = await cache.get(cache_key)
+    cached = _cache_get(cache_key)
     if cached is not None:
         return cached
 
     queries = _STATS_HIST_QUERIES if from_last_data else _STATS_QUERIES
     try:
-        async with engine.connect() as conn:
-            result = await conn.execute(
+        with engine.connect() as conn:
+            result = conn.execute(
                 text(queries[period]),
                 {"codigo": codigo, "vmin": valormin, "vmax": valormax},
             )
@@ -312,5 +325,5 @@ async def get_stats(
         alto.append(float(a) if a is not None else None)
 
     response = {"labels": labels, "bajo": bajo, "medio": medio, "alto": alto}
-    await cache.set(cache_key, response, ttl=settings.cache_ttl)
+    _cache_set(cache_key, response, settings.cache_ttl)
     return response
