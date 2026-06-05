@@ -113,14 +113,29 @@ curl http://localhost:8000/health
 
 ## Flowsheet SCADA
 
-`frontend/flowsheet-tk1.html` es una vista estática que replica el panel ImageIt de Grafana para el Tanque TK-1. Carga una imagen de fondo SCADA con 27 botones superpuestos que redirigen a `index.html?codigo=XXX`.
+`frontend/flowsheet-tk1.html` es una vista estática que replica el panel ImageIt de Grafana para el Tanque TK-1. Carga una imagen de fondo SCADA con 27 botones superpuestos que muestran el último valor de cada variable y redirigen a los gráficos históricos al hacer click.
+
+### Acceso
+
+Con el frontend corriendo en puerto 8080:
+
+```
+http://localhost:8080/flowsheet-tk1.html
+```
+
+Los botones cargan los valores actuales automáticamente (requiere el backend corriendo). Se refrescan cada 60 segundos.
+
+### Navegar a los gráficos
+
+Click en cualquier botón → abre `index.html?codigo=XXX` con los gráficos históricos de esa variable.
 
 ### Agregar o mover un botón
 
 Cada botón es un `<a>` con coordenadas en `%` (relativas al tamaño de la imagen):
 
 ```html
-<a href="index.html?codigo=XXX" class="scada-btn" style="left:50%;top:25%" title="Descripción">LABEL</a>
+<a href="index.html?codigo=XXX" class="scada-btn" data-codigo="XXX" data-decimals="2"
+   style="left:50%;top:25%" title="Descripción">–</a>
 ```
 
 Las coordenadas provienen del JSON del plugin ImageIt (campo `position.x` / `position.y`), que ya las exporta en porcentaje.
@@ -132,10 +147,6 @@ Agregar la clase `debug` al `<body>` para ver los bordes de todos los botones:
 ```html
 <body class="debug">
 ```
-
-### Relación con el proyecto de gráficos
-
-El mímico actúa como punto de entrada: cada botón lleva a `index.html?codigo=XXX`, donde se muestran los gráficos históricos de esa variable.
 
 ## Notas
 
