@@ -159,13 +159,16 @@ async function load(codigo, unit) {
   document.getElementById('header-sub').textContent =
     `Código ${codigo}  ·  Min: ${variable.valormin}  ·  Max: ${variable.valormax}`;
 
+  const cardEl = document.getElementById('card-current');
+  const nombreEl = document.getElementById('current-nombre');
+  const valorEl = document.getElementById('current-valor');
+  nombreEl.textContent = variable.nombre || `Variable ${codigo}`;
+  valorEl.textContent = '–';
+  cardEl.style.display = 'flex';
+
   fetch(`${API_URL}/api/variables/${codigo}/last`)
     .then(r => r.json())
-    .then(data => {
-      document.getElementById('current-nombre').textContent = variable.nombre || `Variable ${codigo}`;
-      document.getElementById('current-valor').textContent = formatValUnit(data.valor, unit);
-      document.getElementById('card-current').style.display = 'flex';
-    })
+    .then(data => { valorEl.textContent = formatValUnit(data.valor, unit); })
     .catch(() => {});
 
   await Promise.all([
