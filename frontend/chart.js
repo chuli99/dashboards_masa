@@ -1,9 +1,7 @@
 const API_URL = window.API_URL || `http://${window.location.hostname}:5050`;
-const UNIT_SUFFIX = { m3: ' m³', pct: ' %', bar: ' bar' };
-
 function formatValUnit(val, unit) {
-  if (unit === 'bool') return val >= 1 ? 'On' : 'Off';
-  return val.toFixed(2) + (UNIT_SUFFIX[unit] || '');
+  if (!unit || /bool/i.test(unit)) return val >= 1 ? 'On' : 'Off';
+  return val.toFixed(2) + ' ' + unit;
 }
 
 const SERIES = [
