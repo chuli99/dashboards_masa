@@ -162,13 +162,14 @@ async function load(codigo, unit) {
   const cardEl = document.getElementById('card-current');
   const nombreEl = document.getElementById('current-nombre');
   const valorEl = document.getElementById('current-valor');
+  const resolvedUnit = variable.unidad || unit;
   nombreEl.textContent = variable.nombre || `Variable ${codigo}`;
   valorEl.textContent = '–';
   cardEl.style.display = 'flex';
 
   fetch(`${API_URL}/api/variables/${codigo}/last`)
     .then(r => r.json())
-    .then(data => { valorEl.textContent = formatValUnit(data.valor, unit); })
+    .then(data => { valorEl.textContent = formatValUnit(data.valor, resolvedUnit); })
     .catch(() => {});
 
   await Promise.all([

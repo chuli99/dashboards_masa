@@ -188,7 +188,7 @@ def get_variable(codigo: int):
     try:
         with engine.connect() as conn:
             result = conn.execute(
-                text("SELECT CODIGO, DESCRIPCION, VALORMIN, VALORMAX FROM Variables WHERE CODIGO = :codigo"),
+                text("SELECT CODIGO, DESCRIPCION, VALORMIN, VALORMAX, Unidad FROM Variables WHERE CODIGO = :codigo"),
                 {"codigo": codigo},
             )
             row = result.fetchone()
@@ -204,6 +204,7 @@ def get_variable(codigo: int):
         "nombre": row[1],
         "valormin": float(row[2]) if row[2] is not None else 0,
         "valormax": float(row[3]) if row[3] is not None else 100,
+        "unidad": row[4] or "",
     }
     _cache_set(cache_key, response, settings.cache_ttl)
     return response
