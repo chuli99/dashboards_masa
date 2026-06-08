@@ -130,6 +130,20 @@
       font-size: 0.9rem;
       display: none;
     }
+
+    .row-30d {
+      display: grid;
+      grid-template-columns: 1fr 220px;
+      gap: 16px;
+      align-items: stretch;
+    }
+    @media (max-width: 900px) {
+      .row-30d { grid-template-columns: 1fr; }
+    }
+
+    #card-current { display: none; text-align: center; justify-content: center; flex-direction: column; padding: 28px 20px; }
+    #current-nombre { font-size: 0.9rem; color: #64748b; margin-bottom: 16px; }
+    #current-valor { font-size: 3rem; font-weight: 700; color: #0f172a; line-height: 1; }
   </style>
 </head>
 <body data-historico="1">
@@ -148,11 +162,19 @@
 <main>
   <div id="error"></div>
 
-  <div class="chart-card">
-    <h2>30 días desde último dato</h2>
-    <div class="loading" id="loading-30d">Cargando...</div>
-    <p class="no-data" id="nodata-30d">Sin datos para el período.</p>
-    <canvas id="chart-30d" height="80"></canvas>
+  <div class="row-30d">
+    <div class="chart-card">
+      <h2>30 días desde último dato</h2>
+      <div class="loading" id="loading-30d">Cargando...</div>
+      <p class="no-data" id="nodata-30d">Sin datos para el período.</p>
+      <canvas id="chart-30d" height="80"></canvas>
+    </div>
+
+    <div class="chart-card" id="card-current">
+      <h2>Valor actual</h2>
+      <div id="current-nombre"></div>
+      <div id="current-valor"></div>
+    </div>
   </div>
 
   <div class="charts-row">
@@ -171,6 +193,7 @@
   </div>
 </main>
 
+<script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="chart.js"></script>
 </body>

@@ -1,4 +1,10 @@
 const API_URL = window.API_URL || `http://${window.location.hostname}:5050`;
+const UNIT_SUFFIX = { m3: ' m³', pct: ' %', bar: ' bar' };
+
+function formatValUnit(val, unit) {
+  if (unit === 'bool') return val >= 1 ? 'On' : 'Off';
+  return val.toFixed(2) + (UNIT_SUFFIX[unit] || '');
+}
 
 const SERIES = [
   { key: 'bajo',  label: 'Bajo',  color: '#ef4444' },
@@ -136,7 +142,7 @@ async function loadPeriod(codigo, period, valormin, valormax) {
   loadingEl.style.display = 'none';
 }
 
-async function load(codigo) {
+async function load(codigo, unit) {
   clearError();
   document.getElementById('btnRefresh').disabled = true;
 
@@ -152,6 +158,15 @@ async function load(codigo) {
   document.getElementById('header-title').textContent = variable.nombre || `Variable ${codigo}`;
   document.getElementById('header-sub').textContent =
     `Código ${codigo}  ·  Min: ${variable.valormin}  ·  Max: ${variable.valormax}`;
+
+  fetch(`${API_URL}/api/variables/${codigo}/last`)
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('current-nombre').textContent = variable.nombre || `Variable ${codigo}`;
+      document.getElementById('current-valor').textContent = formatValUnit(data.valor, unit);
+      document.getElementById('card-current').style.display = 'flex';
+    })
+    .catch(() => {});
 
   await Promise.all([
     loadPeriod(codigo, '30d', variable.valormin, variable.valormax),
@@ -175,6 +190,7 @@ function clearError() {
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
   const codigo = params.get('codigo');
+  const unit = params.get('unit') || '';
 
   if (!codigo) {
     showError('Falta el parámetro ?codigo= en la URL.');
@@ -182,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const btnRefresh = document.getElementById('btnRefresh');
-  btnRefresh.addEventListener('click', () => load(codigo));
+  btnRefresh.addEventListener('click', () => load(codigo, unit));
 
-  load(codigo);
+  load(codigo, unit);
 });
