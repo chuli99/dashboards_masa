@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Flowsheet Editor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #1e293b; color: #f1f5f9; display: flex; flex-direction: column; height: 100vh; }
+
+    #toolbar {
+      display: flex; align-items: center; gap: 12px; padding: 10px 16px;
+      background: #0f172a; border-bottom: 1px solid #334155; flex-shrink: 0;
+    }
+    #toolbar label { font-size: 0.8rem; color: #94a3b8; }
+    #toolbar input[type=text] {
+      background: #1e293b; border: 1px solid #475569; color: #f1f5f9;
+      border-radius: 4px; padding: 4px 8px; font-size: 0.8rem; width: 320px;
+    }
+    #toolbar button {
+      background: #2563eb; color: white; border: none; border-radius: 4px;
+      padding: 5px 12px; font-size: 0.8rem; cursor: pointer;
+    }
+    #toolbar button:hover { background: #1d4ed8; }
+    #toolbar button.secondary { background: #475569; }
+    #toolbar button.secondary:hover { background: #334155; }
+    #btn-copy { background: #16a34a; }
+    #btn-copy:hover { background: #15803d; }
+    #btn-copy.copied { background: #475569; }
+
+    #workspace { flex: 1; overflow: auto; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
+
+    #canvas-wrap {
+      position: relative; display: inline-block;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.5);
+    }
+
+    #bg-img { display: block; max-width: 100%; height: auto; pointer-events: none; user-select: none; }
+
+    .btn-editor {
+      position: absolute; transform: translate(-50%, -50%);
+      background: rgba(15,23,42,0.85); color: #f1f5f9;
+      border: 1.5px solid #3b82f6; border-radius: 4px;
+      padding: 2px 7px; font-size: 0.7rem; font-weight: 600;
+      cursor: grab; user-select: none; white-space: nowrap;
+      transition: border-color 0.1s, background 0.1s;
+    }
+    .btn-editor:active { cursor: grabbing; }
+    .btn-editor.selected { border-color: #f59e0b; background: rgba(245,158,11,0.2); z-index: 10; }
+    .btn-editor.bool { border-color: #a855f7; }
+    .btn-editor.bool.selected { border-color: #f59e0b; }
+
+    #output-wrap { padding: 0 20px 20px; flex-shrink: 0; }
+    #output {
+      background: #0f172a; border: 1px solid #334155; border-radius: 6px;
+      padding: 12px; font-family: monospace; font-size: 0.72rem; color: #7dd3fc;
+      max-height: 160px; overflow-y: auto; white-space: pre; display: none;
+    }
+
+    #status { font-size: 0.75rem; color: #64748b; margin-left: auto; }
+
+    #instructions { font-size: 0.75rem; color: #64748b; }
+  </style>
+</head>
+<body>
+
+<div id="toolbar">
+  <label>URL imagen:</label>
+  <input type="text" id="img-url" value="http://10.91.1.229:88/images/TanqueTK1.PNG">
+  <button onclick="loadImage()">Cargar</button>
+  <button class="secondary" onclick="loadFromFlowsheet()">Cargar botones actuales</button>
+  <button id="btn-copy" onclick="copyHTML()">Copiar HTML</button>
+  <span id="status" id="status"></span>
+  <span id="instructions">Arrastrá · Click = seleccionar · Supr = eliminar seleccionado</span>
+</div>
+
+<div id="workspace">
+  <div id="canvas-wrap">
+    <img id="bg-img" src="" alt="Flowsheet">
+  </div>
+</div>
+
+<div id="output-wrap">
+  <div id="output"></div>
+</div>
+
+<script>
+const BUTTONS = [
+  { codigo:'062', decimals:2, unit:'m3',   left:80.11, top:7.77,  title:'FQ 902' },
+  { codigo:'075', decimals:2, unit:'m3',   left:80.08, top:13.74, title:'FI902' },
+  { codigo:'093', decimals:0, unit:'pct',  left:69.38, top:16.59, title:'LI 883C' },
+  { codigo:'054', decimals:2, unit:'m3',   left:46.62, top:15.46, title:'FI881' },
+  { codigo:'095', decimals:2, unit:'pct',  left:58.25, top:18.20, title:'LI 883B' },
+  { codigo:'059', decimals:2, unit:'m3',   left:46.36, top:20.48, title:'FQ881' },
+  { codigo:'056', decimals:0, unit:'m3',   left:7.32,  top:32.24, title:'FQ880' },
+  { codigo:'054', decimals:2, unit:'m3',   left:7.01,  top:36.99, title:'FI880' },
+  { codigo:'004', decimals:2, unit:'bar',  left:14.99, top:37.76, title:'PI880' },
+  { codigo:'127', decimals:0, unit:'bool', left:16.40, top:47.77, title:'610-PP-024' },
+  { codigo:'137', decimals:0, unit:'bool', left:29.04, top:44.21, title:'610-PP-012' },
+  { codigo:'138', decimals:0, unit:'bool', left:29.50, top:57.13, title:'610-PP-013' },
+  { codigo:'139', decimals:0, unit:'bool', left:29.50, top:71.16, title:'610-PP-022' },
+  { codigo:'140', decimals:0, unit:'bool', left:29.38, top:83.18, title:'610-PP-023' },
+  { codigo:'100', decimals:2, unit:'pct',  left:58.24, top:51.63, title:'LI1120' },
+  { codigo:'099', decimals:2, unit:'pct',  left:58.05, top:59.29, title:'TK 15C LI 1120C' },
+  { codigo:'244', decimals:2, unit:'pct',  left:92.60, top:44.21, title:'LI1011C' },
+  { codigo:'008', decimals:2, unit:'m3',   left:82.01, top:57.49, title:'FI885' },
+  { codigo:'108', decimals:2, unit:'m3',   left:94.43, top:56.99, title:'FI10011A' },
+  { codigo:'009', decimals:2, unit:'m3',   left:81.56, top:62.10, title:'FQ885' },
+  { codigo:'109', decimals:2, unit:'m3',   left:94.66, top:62.30, title:'FI10011B' },
+  { codigo:'051', decimals:2, unit:'m3',   left:95.33, top:68.95, title:'FI874' },
+  { codigo:'053', decimals:2, unit:'m3',   left:95.35, top:73.76, title:'FQ874' },
+  { codigo:'001', decimals:2, unit:'m3',   left:13.32, top:66.56, title:'FI904' },
+  { codigo:'003', decimals:2, unit:'bar',  left:18.80, top:66.62, title:'PI903' },
+  { codigo:'101', decimals:2, unit:'pct',  left:39.79, top:77.64, title:'LI893' },
+  { codigo:'067', decimals:0, unit:'pct',  left:94.07, top:82.61, title:'LI873' },
+];
+
+const wrap = document.getElementById('canvas-wrap');
+const img  = document.getElementById('bg-img');
+let selected = null;
+
+function loadImage() {
+  const url = document.getElementById('img-url').value.trim();
+  img.src = url;
+  img.onload = () => setStatus(`Imagen cargada (${img.naturalWidth}×${img.naturalHeight})`);
+  img.onerror = () => setStatus('Error al cargar imagen — CORS o URL inválida');
+}
+
+function setStatus(msg) { document.getElementById('status').textContent = msg; }
+
+function loadFromFlowsheet() {
+  wrap.querySelectorAll('.btn-editor').forEach(el => el.remove());
+  BUTTONS.forEach(b => addButton(b));
+  setStatus(`${BUTTONS.length} botones cargados`);
+}
+
+function addButton(b) {
+  const el = document.createElement('div');
+  el.className = 'btn-editor' + (b.unit === 'bool' ? ' bool' : '');
+  el.title = b.title;
+  el.textContent = b.title;
+  el.dataset.codigo   = b.codigo;
+  el.dataset.decimals = b.decimals;
+  el.dataset.unit     = b.unit;
+  el.style.left = b.left + '%';
+  el.style.top  = b.top  + '%';
+  makeDraggable(el);
+  wrap.appendChild(el);
+  return el;
+}
+
+function makeDraggable(el) {
+  let startX, startY, startL, startT, dragged;
+
+  el.addEventListener('mousedown', e => {
+    e.preventDefault();
+    select(el);
+    dragged = false;
+    const rect = wrap.getBoundingClientRect();
+    startX = e.clientX;
+    startY = e.clientY;
+    startL = parseFloat(el.style.left);
+    startT = parseFloat(el.style.top);
+
+    function onMove(e) {
+      const dx = (e.clientX - startX) / rect.width  * 100;
+      const dy = (e.clientY - startY) / rect.height * 100;
+      if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) dragged = true;
+      el.style.left = (startL + dx).toFixed(2) + '%';
+      el.style.top  = (startT + dy).toFixed(2) + '%';
+      updateOutput();
+    }
+
+    function onUp() {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+}
+
+function select(el) {
+  if (selected) selected.classList.remove('selected');
+  selected = el;
+  el.classList.add('selected');
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.key === 'Delete' || e.key === 'Backspace') && selected) {
+    selected.remove();
+    selected = null;
+    updateOutput();
+  }
+});
+
+function getButtons() {
+  return [...wrap.querySelectorAll('.btn-editor')].map(el => ({
+    codigo:   el.dataset.codigo,
+    decimals: el.dataset.decimals,
+    unit:     el.dataset.unit,
+    title:    el.title,
+    left:     parseFloat(el.style.left).toFixed(2),
+    top:      parseFloat(el.style.top).toFixed(2),
+  }));
+}
+
+function updateOutput() {
+  const out = document.getElementById('output');
+  out.style.display = 'block';
+  out.textContent = generateHTML();
+}
+
+function generateHTML() {
+  return getButtons().map(b => {
+    const href = `index.html?codigo=${b.codigo}&unit=${b.unit}`;
+    return `  <a href="${href}" class="scada-btn" data-codigo="${b.codigo}" data-decimals="${b.decimals}" data-unit="${b.unit}" style="left:${b.left}%;top:${b.top}%" title="${b.title}">–</a>`;
+  }).join('\n');
+}
+
+function copyHTML() {
+  const html = generateHTML();
+  navigator.clipboard.writeText(html).then(() => {
+    const btn = document.getElementById('btn-copy');
+    btn.textContent = '✓ Copiado';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copiar HTML'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// Auto-inicializar
+loadImage();
+img.onload = () => {
+  setStatus(`Imagen cargada (${img.naturalWidth}×${img.naturalHeight})`);
+  loadFromFlowsheet();
+};
+</script>
+</body>
+</html>
