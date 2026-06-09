@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flowsheet – Planta de Cal Hidróxido</title>
+  <link rel="stylesheet" href="flowsheet-tk1.css">
+</head>
+<body>
+
+<div class="mimico-container">
+  <img src="http://10.91.1.229:88/images/Plantadecalhidroxido.png" alt="Flowsheet Planta de Cal Hidróxido" class="mimico-bg">
+
+  <a href="index.html?codigo=284&unit=bool" class="scada-btn" data-codigo="284" data-decimals="2" data-unit="bool" style="left:24.64%;top:37.06%" title="HV-027">–</a>
+  <a href="index.html?codigo=300&unit=bool" class="scada-btn" data-codigo="300" data-decimals="2" data-unit="bool" style="left:7.37%;top:58.12%"  title="620-PP-032A">–</a>
+  <a href="index.html?codigo=267&unit=m3"   class="scada-btn" data-codigo="267" data-decimals="2" data-unit="m3"   style="left:14.11%;top:61.25%" title="LI1068">–</a>
+  <a href="index.html?codigo=299&unit=m3"   class="scada-btn" data-codigo="299" data-decimals="2" data-unit="m3"   style="left:34.11%;top:64.72%" title="LI1097">–</a>
+  <a href="index.html?codigo=301&unit=bool" class="scada-btn" data-codigo="301" data-decimals="2" data-unit="bool" style="left:16.36%;top:84.80%" title="620-PP-037A">–</a>
+  <a href="index.html?codigo=258&unit=m3"   class="scada-btn" data-codigo="258" data-decimals="2" data-unit="m3"   style="left:38.66%;top:83.87%" title="FIFE002">–</a>
+  <a href="index.html?codigo=303&unit=bool" class="scada-btn" data-codigo="303" data-decimals="2" data-unit="bool" style="left:50.13%;top:63.46%" title="620-AG-012">–</a>
+  <a href="index.html?codigo=098&unit=m3"   class="scada-btn" data-codigo="098" data-decimals="2" data-unit="m3"   style="left:59.26%;top:60.90%" title="620LIT1302">–</a>
+  <a href="index.html?codigo=118&unit=ph"   class="scada-btn" data-codigo="118" data-decimals="2" data-unit="ph"   style="left:59.26%;top:66.71%" title="620AIT1301">–</a>
+  <a href="index.html?codigo=079&unit=m3"   class="scada-btn" data-codigo="079" data-decimals="2" data-unit="m3"   style="left:68.12%;top:68.33%" title="620FIT1305">–</a>
+  <a href="index.html?codigo=307&unit=m3"   class="scada-btn" data-codigo="307" data-decimals="2" data-unit="m3"   style="left:89.90%;top:66.01%" title="FIFE003">–</a>
+  <a href="index.html?codigo=213&unit=m3"   class="scada-btn" data-codigo="213" data-decimals="2" data-unit="m3"   style="left:75.55%;top:84.11%" title="LI1011">–</a>
+  <a href="index.html?codigo=244&unit=m3"   class="scada-btn" data-codigo="244" data-decimals="2" data-unit="m3"   style="left:80.90%;top:84.11%" title="LI1011C">–</a>
+  <a href="index.html?codigo=116&unit=ph"   class="scada-btn" data-codigo="116" data-decimals="2" data-unit="ph"   style="left:75.55%;top:91.30%" title="AI1016">–</a>
+  <a href="index.html?codigo=117&unit=ph"   class="scada-btn" data-codigo="117" data-decimals="2" data-unit="ph"   style="left:80.90%;top:91.30%" title="AI1016C">–</a>
+</div>
+
+<script src="config.js"></script>
+<script>
+const API = window.API_URL || `http://${window.location.hostname}:5050`;
+const REFRESH_MS = 60000;
+const UNIT_SUFFIX = { m3: ' m³', ph: ' pH', bar: ' bar', pct: ' %' };
+
+function formatVal(val, decimals, unit) {
+  if (unit === 'bool') return val >= 1 ? 'On' : 'Off';
+  return val.toFixed(decimals) + (UNIT_SUFFIX[unit] || '');
+}
+
+async function cargarValores() {
+  const btns = [...document.querySelectorAll('.scada-btn')];
+  const codigos = [...new Set(btns.map(b => b.dataset.codigo))];
+
+  const resultados = await Promise.allSettled(
+    codigos.map(c => fetch(`${API}/api/variables/${c}/last`).then(r => r.json()))
+  );
+
+  const mapa = {};
+  resultados.forEach((r, i) => {
+    if (r.status === 'fulfilled' && r.value.valor !== undefined) mapa[codigos[i]] = r.value.valor;
+  });
+
+  btns.forEach(btn => {
+    const val = mapa[btn.dataset.codigo];
+    if (val !== undefined) btn.textContent = formatVal(val, parseInt(btn.dataset.decimals), btn.dataset.unit);
+  });
+}
+
+cargarValores();
+setInterval(cargarValores, REFRESH_MS);
+</script>
+
+</body>
+</html>
