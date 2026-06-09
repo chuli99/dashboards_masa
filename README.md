@@ -151,6 +151,6 @@ Agregar la clase `debug` al `<body>` para ver los bordes de todos los botones:
 ## Notas
 
 - Los valores se agrupan por **día** en 30d y 7d, y por **hora** en 12h.
-- La query aplica `DATEADD(MINUTE, 175, _TIMESTAMP)` para corrección de zona horaria. Ajustar según el offset real del servidor.
+- Los timestamps se usan directamente sin corrección de zona horaria (la DB almacena en hora local).
 - `TrustServerCertificate=yes` está activo en la connection string. Revisarlo en entornos productivos con SSL configurado.
 - Cache en memoria con TTL configurable (default 5 min). Se invalida al reiniciar el proceso.
