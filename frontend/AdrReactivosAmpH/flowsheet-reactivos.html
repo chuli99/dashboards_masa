@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flowsheet – ADR Reactivos Ampliación Preparación Hidróxido</title>
+  <link rel="stylesheet" href="../flowsheet-tk1.css">
+</head>
+<body>
+
+<div class="mimico-container">
+  <img src="http://10.91.1.229:88/images/ADRReactivosAmpliacionPreparacionHidroxido.png" alt="Flowsheet ADR Reactivos Ampliación Preparación Hidróxido" class="mimico-bg">
+
+  <a href="../index.html?codigo=284&unit=bool" class="scada-btn" data-codigo="284" data-decimals="2" data-unit="bool" style="left:20.49%;top:5.64%" title="HV027">–</a>
+  <a href="../index.html?codigo=267&unit=pct" class="scada-btn" data-codigo="267" data-decimals="2" data-unit="pct" style="left:42.87%;top:26.20%" title="LI1068">–</a>
+  <a href="../index.html?codigo=299&unit=pct" class="scada-btn" data-codigo="299" data-decimals="2" data-unit="pct" style="left:62.82%;top:31.48%" title="LI1097">–</a>
+  <a href="../index.html?codigo=300&unit=bool" class="scada-btn" data-codigo="300" data-decimals="2" data-unit="bool" style="left:36.25%;top:22.59%" title="620-PP-032A">–</a>
+  <a href="../index.html?codigo=301&unit=bool" class="scada-btn" data-codigo="301" data-decimals="2" data-unit="bool" style="left:44.42%;top:52.97%" title="620-PP-037A">–</a>
+  <a href="../index.html?codigo=258&unit=m3" class="scada-btn" data-codigo="258" data-decimals="2" data-unit="m3" style="left:63.91%;top:48.10%" title="FIFE002">–</a>
+  <a href="../index.html?codigo=98&unit=pct" class="scada-btn" data-codigo="98" data-decimals="2" data-unit="pct" style="left:82.71%;top:25.72%" title="620LIT1302">–</a>
+  <a href="../index.html?codigo=118&unit=ph" class="scada-btn" data-codigo="118" data-decimals="2" data-unit="ph" style="left:82.58%;top:31.29%" title="620AIT1301">–</a>
+  <a href="../index.html?codigo=79&unit=m3" class="scada-btn" data-codigo="79" data-decimals="2" data-unit="m3" style="left:89.72%;top:32.85%" title="620FIT1305">–</a>
+  <a href="../index.html?codigo=307&unit=m3" class="scada-btn" data-codigo="307" data-decimals="2" data-unit="m3" style="left:81.95%;top:71.16%" title="FIFE003">–</a>
+  <a href="../index.html?codigo=213&unit=pct" class="scada-btn" data-codigo="213" data-decimals="2" data-unit="pct" style="left:88.58%;top:72.27%" title="LI1011">–</a>
+  <a href="../index.html?codigo=244&unit=pct" class="scada-btn" data-codigo="244" data-decimals="2" data-unit="pct" style="left:93.53%;top:72.28%" title="LI1011C">–</a>
+  <a href="../index.html?codigo=116&unit=ph" class="scada-btn" data-codigo="116" data-decimals="2" data-unit="ph" style="left:88.98%;top:80.13%" title="AI1016">–</a>
+  <a href="../index.html?codigo=117&unit=ph" class="scada-btn" data-codigo="117" data-decimals="2" data-unit="ph" style="left:93.95%;top:79.62%" title="AI1016C">–</a>
+  <a href="../index.html?codigo=134&unit=pct" class="scada-btn" data-codigo="134" data-decimals="2" data-unit="pct" style="left:36.91%;top:73.04%" title="FIT1220">–</a>
+  <a href="../index.html?codigo=203&unit=pct" class="scada-btn" data-codigo="203" data-decimals="2" data-unit="pct" style="left:21.55%;top:62.15%" title="LI1203">–</a>
+  <a href="../index.html?codigo=343&unit=bool" class="scada-btn" data-codigo="343" data-decimals="2" data-unit="bool" style="left:44.17%;top:63.42%" title="640-AG-001">–</a>
+  <a href="../index.html?codigo=344&unit=bool" class="scada-btn" data-codigo="344" data-decimals="2" data-unit="bool" style="left:27.24%;top:80.38%" title="640-PP-060">–</a>
+  <a href="../index.html?codigo=264&unit=bool" class="scada-btn" data-codigo="264" data-decimals="2" data-unit="bool" style="left:48.29%;top:62.41%" title="HV-1063">–</a>
+  <a href="../index.html?codigo=346&unit=bool" class="scada-btn" data-codigo="346" data-decimals="2" data-unit="bool" style="left:47.87%;top:79.11%" title="HV-1208">–</a>
+  <a href="../index.html?codigo=347&unit=bool" class="scada-btn" data-codigo="347" data-decimals="2" data-unit="bool" style="left:48.15%;top:91.27%" title="HV-1209">–</a>
+  <a href="../index.html?codigo=348&unit=bool" class="scada-btn" data-codigo="348" data-decimals="2" data-unit="bool" style="left:0.21%;top:86.96%" title="620-PS-007">–</a>
+</div>
+
+<script src="../config.js"></script>
+<script>
+const API = window.API_URL || `http://${window.location.hostname}:5050`;
+const REFRESH_MS = 60000;
+const UNIT_SUFFIX = { m3: ' m³', ph: ' pH', pct: ' %', bar: ' bar' };
+
+function formatVal(val, decimals, unit) {
+  if (unit === 'bool') return val >= 1 ? 'On' : 'Off';
+  return val.toFixed(decimals) + (UNIT_SUFFIX[unit] || '');
+}
+
+async function cargarValores() {
+  const btns = [...document.querySelectorAll('.scada-btn')];
+  const codigos = [...new Set(btns.map(b => b.dataset.codigo))];
+
+  const resultados = await Promise.allSettled(
+    codigos.map(c => fetch(`${API}/api/variables/${c}/last`).then(r => r.json()))
+  );
+
+  const mapa = {};
+  resultados.forEach((r, i) => {
+    if (r.status === 'fulfilled' && r.value.valor !== undefined) mapa[codigos[i]] = r.value.valor;
+  });
+
+  btns.forEach(btn => {
+    const val = mapa[btn.dataset.codigo];
+    if (val !== undefined) btn.textContent = formatVal(val, parseInt(btn.dataset.decimals), btn.dataset.unit);
+  });
+}
+
+cargarValores();
+setInterval(cargarValores, REFRESH_MS);
+</script>
+
+</body>
+</html>
