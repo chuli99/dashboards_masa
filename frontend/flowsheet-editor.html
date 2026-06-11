@@ -61,6 +61,7 @@
   <select id="fs-select" onchange="onFlowsheetChange()">
     <option value="tk1">1 - Tanque Solución Rica, Gastada y Piletas</option>
     <option value="cal">10 - Planta de Cal Hidróxido</option>
+    <option value="adr">11 - ADR a Desadsorción Lavado Ácido</option>
   </select>
 
   <label>URL imagen:</label>
@@ -133,6 +134,23 @@ const FLOWSHEETS = {
       { codigo:'244', decimals:2, unit:'m3',   left:80.90, top:84.11, title:'LI1011C' },
       { codigo:'116', decimals:2, unit:'ph',   left:75.55, top:91.30, title:'AI1016' },
       { codigo:'117', decimals:2, unit:'ph',   left:80.90, top:91.30, title:'AI1016C' },
+    ],
+  },
+  adr: {
+    imageUrl: 'http://10.91.1.229:88/images/AdraDesadsorcionLavadoAcido.png',
+    buttons: [
+      { codigo:'310', decimals:2, unit:'ph',   left:67.27, top:18.67, title:'AI1031' },
+      { codigo:'311', decimals:2, unit:'ph',   left:59.01, top:59.04, title:'AI1038' },
+      { codigo:'312', decimals:2, unit:'pct',  left:40.77, top:62.50, title:'LI1036' },
+      { codigo:'313', decimals:2, unit:'pct',  left:85.00, top:64.84, title:'LI1039' },
+      { codigo:'314', decimals:2, unit:'',     left:35.05, top:88.02, title:'PH-PPS-002' },
+      { codigo:'315', decimals:2, unit:'bool', left:16.67, top:38.94, title:'620-PP-029' },
+      { codigo:'316', decimals:2, unit:'bool', left:80.75, top:40.09, title:'620-PP-030' },
+      { codigo:'317', decimals:2, unit:'bool', left:34.41, top:60.83, title:'620-AG-004' },
+      { codigo:'318', decimals:2, unit:'bool', left:73.55, top:60.83, title:'620-AG-005' },
+      { codigo:'322', decimals:2, unit:'bool', left:92.47, top:74.88, title:'630-EW-001' },
+      { codigo:'323', decimals:2, unit:'bool', left:92.47, top:84.56, title:'630-EW-002' },
+      { codigo:'324', decimals:2, unit:'bool', left:24.52, top:90.32, title:'620-PS-002' },
     ],
   },
 };
