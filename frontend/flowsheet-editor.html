@@ -62,6 +62,7 @@
     <option value="tk1">1 - Tanque Solución Rica, Gastada y Piletas</option>
     <option value="cal">10 - Planta de Cal Hidróxido</option>
     <option value="adr">11 - ADR a Desadsorción Lavado Ácido</option>
+    <option value="adorcion">ADR a Adsorción de Carbón</option>
   </select>
 
   <label>URL imagen:</label>
@@ -151,6 +152,41 @@ const FLOWSHEETS = {
       { codigo:'322', decimals:2, unit:'bool', left:92.47, top:74.88, title:'630-EW-001' },
       { codigo:'323', decimals:2, unit:'bool', left:92.47, top:84.56, title:'630-EW-002' },
       { codigo:'324', decimals:2, unit:'bool', left:24.52, top:90.32, title:'620-PS-002' },
+    ],
+  },
+  adorcion: {
+    imageUrl: 'http://10.91.1.229:88/images/ADRaAdsorcióndeCarbón.png',
+    buttons: [
+      { codigo:'8',   decimals:2, unit:'m3',   left:73.63, top:12.87, title:'FI885' },
+      { codigo:'116', decimals:2, unit:'ph',   left:19.08, top:72.19, title:'AI1016' },
+      { codigo:'10',  decimals:3, unit:'m3',   left:64.93, top:12.05, title:'FI885C' },
+      { codigo:'244', decimals:2, unit:'pct',  left:71.80, top:89.94, title:'LI1011C' },
+      { codigo:'108', decimals:2, unit:'m3',   left:54.49, top:12.83, title:'FI10011A' },
+      { codigo:'207', decimals:2, unit:'bool', left:81.05, top:70.86, title:'610-PP019' },
+      { codigo:'208', decimals:2, unit:'bool', left:80.80, top:78.34, title:'610-PP020' },
+      { codigo:'217', decimals:2, unit:'bool', left:34.66, top:84.22, title:'610-PP040' },
+      { codigo:'219', decimals:2, unit:'bool', left:35.04, top:73.00, title:'610-PP041' },
+      { codigo:'203', decimals:2, unit:'bool', left:82.29, top:29.68, title:'HV10008A' },
+      { codigo:'192', decimals:2, unit:'bool', left:14.59, top:7.22,  title:'HV10001A' },
+      { codigo:'193', decimals:2, unit:'bool', left:12.72, top:34.22, title:'HV10001B' },
+      { codigo:'195', decimals:2, unit:'bool', left:24.56, top:13.90, title:'HV10002A' },
+      { codigo:'196', decimals:2, unit:'bool', left:26.56, top:42.78, title:'HV10002B' },
+      { codigo:'197', decimals:2, unit:'bool', left:37.66, top:19.25, title:'HV10003A' },
+      { codigo:'198', decimals:2, unit:'bool', left:39.65, top:51.07, title:'HV10003B' },
+      { codigo:'199', decimals:2, unit:'bool', left:50.12, top:26.74, title:'HV10004A' },
+      { codigo:'200', decimals:2, unit:'bool', left:52.49, top:58.82, title:'HV10004B' },
+      { codigo:'202', decimals:2, unit:'bool', left:65.71, top:66.84, title:'HV10005B' },
+      { codigo:'206', decimals:2, unit:'bool', left:91.15, top:64.44, title:'HV1007A' },
+      { codigo:'216', decimals:2, unit:'bool', left:21.70, top:51.87, title:'HV1009' },
+      { codigo:'215', decimals:2, unit:'bool', left:11.97, top:51.60, title:'HV1010A' },
+      { codigo:'201', decimals:2, unit:'bool', left:59.73, top:22.73, title:'HV1017' },
+      { codigo:'214', decimals:2, unit:'bool', left:11.22, top:61.23, title:'HV1209' },
+      { codigo:'221', decimals:2, unit:'ntu',  left:46.00, top:88.45, title:'FTI001' },
+      { codigo:'222', decimals:2, unit:'bar',  left:56.98, top:88.65, title:'PDI1019' },
+      { codigo:'213', decimals:2, unit:'pct',  left:2.05,  top:74.90, title:'LI1011' },
+      { codigo:'204', decimals:2, unit:'pct',  left:64.34, top:79.48, title:'LI1012' },
+      { codigo:'204', decimals:2, unit:'bool', left:3.54,  top:38.84, title:'610-PP010A' },
+      { codigo:'223', decimals:2, unit:'bool', left:85.20, top:89.44, title:'610-PS001' },
     ],
   },
 };
