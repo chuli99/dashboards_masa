@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flowsheet – Servicios Planta Agua Procesos y Contraincendio</title>
+  <link rel="stylesheet" href="../flowsheet-tk1.css">
+</head>
+<body>
+
+<div class="mimico-container">
+  <img src="http://10.91.1.229:88/images/ServiciosPlantaAguaProcesosyContraincendio.png" alt="Flowsheet Servicios Planta Agua" class="mimico-bg">
+
+  <a href="../index.html?codigo=091&unit=pct" class="scada-btn" data-codigo="091" data-decimals="2" data-unit="pct" style="left:65.45%;top:9.45%" title="LI951">–</a>
+  <a href="../index.html?codigo=080&unit=m3" class="scada-btn" data-codigo="080" data-decimals="2" data-unit="m3" style="left:76.69%;top:4.40%" title="FI905">–</a>
+  <a href="../index.html?codigo=082&unit=m3" class="scada-btn" data-codigo="082" data-decimals="2" data-unit="m3" style="left:90.83%;top:1.84%" title="FI905C">–</a>
+  <a href="../index.html?codigo=186&unit=bool" class="scada-btn" data-codigo="186" data-decimals="2" data-unit="bool" style="left:27.32%;top:9.86%" title="830-PP-067">–</a>
+  <a href="../index.html?codigo=187&unit=bool" class="scada-btn" data-codigo="187" data-decimals="2" data-unit="bool" style="left:27.47%;top:21.00%" title="830-PP-068">–</a>
+  <a href="../index.html?codigo=188&unit=bool" class="scada-btn" data-codigo="188" data-decimals="2" data-unit="bool" style="left:27.43%;top:32.37%" title="830-PP-069">–</a>
+  <a href="../index.html?codigo=189&unit=m3" class="scada-btn" data-codigo="189" data-decimals="2" data-unit="m3" style="left:38.95%;top:10.33%" title="FI954">–</a>
+</div>
+
+<script src="../config.js"></script>
+<script>
+const API = window.API_URL || `http://${window.location.hostname}:5050`;
+const REFRESH_MS = 60000;
+const UNIT_SUFFIX = { m3: ' m³', pct: ' %' };
+
+function formatVal(val, decimals, unit) {
+  if (unit === 'bool') return val >= 1 ? 'On' : 'Off';
+  return val.toFixed(decimals) + (UNIT_SUFFIX[unit] || '');
+}
+
+async function cargarValores() {
+  const btns = [...document.querySelectorAll('.scada-btn')];
+  const codigos = [...new Set(btns.map(b => b.dataset.codigo))];
+
+  const resultados = await Promise.allSettled(
+    codigos.map(c => fetch(`${API}/api/variables/${c}/last`).then(r => r.json()))
+  );
+
+  const mapa = {};
+  resultados.forEach((r, i) => {
+    if (r.status === 'fulfilled' && r.value.valor !== undefined) mapa[codigos[i]] = r.value.valor;
+  });
+
+  btns.forEach(btn => {
+    const val = mapa[btn.dataset.codigo];
+    if (val !== undefined) btn.textContent = formatVal(val, parseInt(btn.dataset.decimals), btn.dataset.unit);
+  });
+}
+
+cargarValores();
+setInterval(cargarValores, REFRESH_MS);
+</script>
+
+</body>
+</html>

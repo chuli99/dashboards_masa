@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flowsheet – Preparación de NaOH</title>
+  <link rel="stylesheet" href="../flowsheet-tk1.css">
+</head>
+<body>
+
+<div class="mimico-container">
+  <img src="http://10.91.1.229:88/images/PreparacióndeNaOH_oficial_2.png" alt="Flowsheet Preparación de NaOH" class="mimico-bg">
+
+  <a href="../index.html?codigo=134&unit=m3" class="scada-btn" data-codigo="134" data-decimals="2" data-unit="m3" style="left:82.27%;top:16.41%" title="FIT1220">–</a>
+  <a href="../index.html?codigo=133&unit=m3" class="scada-btn" data-codigo="133" data-decimals="2" data-unit="m3" style="left:56.13%;top:19.61%" title="LI1203">–</a>
+  <a href="../index.html?codigo=135&unit=pct" class="scada-btn" data-codigo="135" data-decimals="2" data-unit="pct" style="left:69.69%;top:67.63%" title="SC1210">–</a>
+  <a href="../index.html?codigo=136&unit=pct" class="scada-btn" data-codigo="136" data-decimals="2" data-unit="pct" style="left:69.82%;top:80.63%" title="SC1211">–</a>
+</div>
+
+<script src="../config.js"></script>
+<script>
+const API = window.API_URL || `http://${window.location.hostname}:5050`;
+const REFRESH_MS = 60000;
+const UNIT_SUFFIX = { m3: ' m³', pct: ' %' };
+
+function formatVal(val, decimals, unit) {
+  if (unit === 'bool') return val >= 1 ? 'On' : 'Off';
+  return val.toFixed(decimals) + (UNIT_SUFFIX[unit] || '');
+}
+
+async function cargarValores() {
+  const btns = [...document.querySelectorAll('.scada-btn')];
+  const codigos = [...new Set(btns.map(b => b.dataset.codigo))];
+
+  const resultados = await Promise.allSettled(
+    codigos.map(c => fetch(`${API}/api/variables/${c}/last`).then(r => r.json()))
+  );
+
+  const mapa = {};
+  resultados.forEach((r, i) => {
+    if (r.status === 'fulfilled' && r.value.valor !== undefined) mapa[codigos[i]] = r.value.valor;
+  });
+
+  btns.forEach(btn => {
+    const val = mapa[btn.dataset.codigo];
+    if (val !== undefined) btn.textContent = formatVal(val, parseInt(btn.dataset.decimals), btn.dataset.unit);
+  });
+}
+
+cargarValores();
+setInterval(cargarValores, REFRESH_MS);
+</script>
+
+</body>
+</html>

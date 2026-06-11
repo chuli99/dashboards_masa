@@ -11,25 +11,31 @@
       display: flex; align-items: center; gap: 12px; padding: 10px 16px;
       background: #0f172a; border-bottom: 1px solid #334155; flex-shrink: 0; flex-wrap: wrap;
     }
-    #toolbar label { font-size: 0.8rem; color: #94a3b8; white-space: nowrap; }
+    #toolbar label { font-size: 0.8rem; color: #94a3b8; }
     #toolbar select, #toolbar input[type=text] {
       background: #1e293b; border: 1px solid #475569; color: #f1f5f9;
       border-radius: 4px; padding: 4px 8px; font-size: 0.8rem;
     }
-    #fs-select { width: 320px; }
-    #img-url   { width: 280px; }
+    #toolbar select { width: 240px; }
+    #toolbar input[type=text] { width: 320px; }
     #toolbar button {
       background: #2563eb; color: white; border: none; border-radius: 4px;
-      padding: 5px 12px; font-size: 0.8rem; cursor: pointer; white-space: nowrap;
+      padding: 5px 12px; font-size: 0.8rem; cursor: pointer;
     }
     #toolbar button:hover { background: #1d4ed8; }
+    #toolbar button.secondary { background: #475569; }
+    #toolbar button.secondary:hover { background: #334155; }
     #btn-copy { background: #16a34a; }
     #btn-copy:hover { background: #15803d; }
     #btn-copy.copied { background: #475569; }
 
     #workspace { flex: 1; overflow: auto; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
 
-    #canvas-wrap { position: relative; display: inline-block; box-shadow: 0 4px 32px rgba(0,0,0,0.5); }
+    #canvas-wrap {
+      position: relative; display: inline-block;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.5);
+    }
+
     #bg-img { display: block; max-width: 100%; height: auto; pointer-events: none; user-select: none; }
 
     .btn-editor {
@@ -38,6 +44,7 @@
       border: 1.5px solid #3b82f6; border-radius: 4px;
       padding: 2px 7px; font-size: 0.7rem; font-weight: 600;
       cursor: grab; user-select: none; white-space: nowrap;
+      transition: border-color 0.1s, background 0.1s;
     }
     .btn-editor:active { cursor: grabbing; }
     .btn-editor.selected { border-color: #f59e0b; background: rgba(245,158,11,0.2); z-index: 10; }
@@ -50,6 +57,7 @@
       padding: 12px; font-family: monospace; font-size: 0.72rem; color: #7dd3fc;
       max-height: 160px; overflow-y: auto; white-space: pre; display: none;
     }
+
     #status { font-size: 0.75rem; color: #64748b; margin-left: auto; }
     #instructions { font-size: 0.75rem; color: #64748b; }
   </style>
@@ -58,22 +66,25 @@
 
 <div id="toolbar">
   <label>Flowsheet:</label>
-  <select id="fs-select" onchange="onFlowsheetChange()">
-    <option value="tk1">1 - Tanque Solución Rica, Gastada y Piletas</option>
-    <option value="cal">10 - Planta de Cal Hidróxido</option>
-    <option value="adr">11 - ADR a Desadsorción Lavado Ácido</option>
-    <option value="adorcion">ADR a Adsorción de Carbón</option>
-    <option value="ampliacion">ADR Ampliación Adsorción de Carbón</option>
+  <select id="fs-select" onchange="loadFromSelect()">
+    <option value="tk1">TK1 Solución Rica (general)</option>
+    <option value="adr">ADR → Desadsorción Lavado Ácido</option>
+    <option value="adorcion">ADR → Adsorción de Carbón</option>
+    <option value="ampliacion">ADR Ampliación Adsorción</option>
     <option value="desadsorcion">ADR Desadsorción</option>
-    <option value="reactivos">ADR Reactivos Ampliación Preparación Hidróxido</option>
+    <option value="reactivos">ADR Reactivos Amp. Hidróxido</option>
+    <option value="cianuro">ADR Reactivos Sistema Cianuro</option>
+    <option value="naoh">Preparación NaOH</option>
+    <option value="servicios">Servicios Planta Agua</option>
+    <option value="tanques">Tanques Solución Rica y Pobre</option>
+    <option value="tk1rica">Tanque TK1 Solución Rica</option>
   </select>
-
   <label>URL imagen:</label>
-  <input type="text" id="img-url">
-  <button onclick="loadImage()">Cargar</button>
+  <input type="text" id="img-url" value="">
+  <button onclick="loadImage()">Cargar imagen</button>
   <button id="btn-copy" onclick="copyHTML()">Copiar HTML</button>
   <span id="status"></span>
-  <span id="instructions">Arrastrá · Click = seleccionar · Supr = eliminar</span>
+  <span id="instructions">Arrastrá · Click = seleccionar · Supr = eliminar seleccionado</span>
 </div>
 
 <div id="workspace">
@@ -89,59 +100,39 @@
 <script>
 const FLOWSHEETS = {
   tk1: {
-    imageUrl: 'http://10.91.1.229:88/images/TanqueTK1.PNG',
+    image: 'http://10.91.1.229:88/images/TanqueTK1.PNG',
     buttons: [
-      { codigo:'062', decimals:2, unit:'m3',   left:81.99, top:9.69,  title:'FQ 902' },
-      { codigo:'075', decimals:2, unit:'m3',   left:81.96, top:15.66, title:'FI902' },
-      { codigo:'093', decimals:0, unit:'pct',  left:69.95, top:17.87, title:'LI 883C' },
-      { codigo:'054', decimals:2, unit:'m3',   left:48.58, top:17.22, title:'FI881' },
-      { codigo:'095', decimals:2, unit:'pct',  left:60.05, top:19.80, title:'LI 883B' },
-      { codigo:'059', decimals:2, unit:'m3',   left:48.89, top:21.92, title:'FQ881' },
-      { codigo:'056', decimals:0, unit:'m3',   left:8.46,  top:33.04, title:'FQ880' },
-      { codigo:'054', decimals:2, unit:'m3',   left:8.40,  top:37.95, title:'FI880' },
-      { codigo:'004', decimals:2, unit:'bar',  left:16.71, top:39.36, title:'PI880' },
-      { codigo:'127', decimals:0, unit:'bool', left:19.67, top:47.93, title:'610-PP-024' },
-      { codigo:'137', decimals:0, unit:'bool', left:26.75, top:45.17, title:'610-PP-012' },
-      { codigo:'138', decimals:0, unit:'bool', left:31.21, top:59.05, title:'610-PP-013' },
-      { codigo:'139', decimals:0, unit:'bool', left:31.54, top:72.92, title:'610-PP-022' },
-      { codigo:'140', decimals:0, unit:'bool', left:31.75, top:84.62, title:'610-PP-023' },
-      { codigo:'100', decimals:2, unit:'pct',  left:59.38, top:53.55, title:'LI1120' },
-      { codigo:'099', decimals:2, unit:'pct',  left:59.19, top:61.05, title:'TK 15C LI 1120C' },
-      { codigo:'244', decimals:2, unit:'pct',  left:94.07, top:46.29, title:'LI1011C' },
-      { codigo:'008', decimals:2, unit:'m3',   left:83.48, top:59.09, title:'FI885' },
-      { codigo:'108', decimals:2, unit:'m3',   left:95.90, top:59.07, title:'FI10011A' },
-      { codigo:'009', decimals:2, unit:'m3',   left:83.68, top:63.86, title:'FQ885' },
-      { codigo:'109', decimals:2, unit:'m3',   left:96.21, top:64.22, title:'FI10011B' },
-      { codigo:'051', decimals:2, unit:'m3',   left:96.47, top:69.91, title:'FI874' },
-      { codigo:'053', decimals:2, unit:'m3',   left:96.41, top:75.68, title:'FQ874' },
-      { codigo:'001', decimals:2, unit:'m3',   left:14.95, top:68.16, title:'FI904' },
-      { codigo:'003', decimals:2, unit:'bar',  left:20.51, top:68.54, title:'PI903' },
-      { codigo:'101', decimals:2, unit:'pct',  left:41.26, top:79.56, title:'LI893' },
-      { codigo:'067', decimals:0, unit:'pct',  left:94.89, top:84.21, title:'LI873' },
-    ],
-  },
-  cal: {
-    imageUrl: 'http://10.91.1.229:88/images/Plantadecalhidroxido.png',
-    buttons: [
-      { codigo:'284', decimals:2, unit:'bool', left:24.64, top:37.06, title:'HV-027' },
-      { codigo:'300', decimals:2, unit:'bool', left:7.37,  top:58.12, title:'620-PP-032A' },
-      { codigo:'267', decimals:2, unit:'m3',   left:14.11, top:61.25, title:'LI1068' },
-      { codigo:'299', decimals:2, unit:'m3',   left:34.11, top:64.72, title:'LI1097' },
-      { codigo:'301', decimals:2, unit:'bool', left:16.36, top:84.80, title:'620-PP-037A' },
-      { codigo:'258', decimals:2, unit:'m3',   left:38.66, top:83.87, title:'FIFE002' },
-      { codigo:'303', decimals:2, unit:'bool', left:50.13, top:63.46, title:'620-AG-012' },
-      { codigo:'098', decimals:2, unit:'m3',   left:59.26, top:60.90, title:'620LIT1302' },
-      { codigo:'118', decimals:2, unit:'ph',   left:59.26, top:66.71, title:'620AIT1301' },
-      { codigo:'079', decimals:2, unit:'m3',   left:68.12, top:68.33, title:'620FIT1305' },
-      { codigo:'307', decimals:2, unit:'m3',   left:89.90, top:66.01, title:'FIFE003' },
-      { codigo:'213', decimals:2, unit:'m3',   left:75.55, top:84.11, title:'LI1011' },
-      { codigo:'244', decimals:2, unit:'m3',   left:80.90, top:84.11, title:'LI1011C' },
-      { codigo:'116', decimals:2, unit:'ph',   left:75.55, top:91.30, title:'AI1016' },
-      { codigo:'117', decimals:2, unit:'ph',   left:80.90, top:91.30, title:'AI1016C' },
+      { codigo:'062', decimals:2, unit:'m3',   left:80.11, top:7.77,  title:'FQ 902' },
+      { codigo:'075', decimals:2, unit:'m3',   left:80.08, top:13.74, title:'FI902' },
+      { codigo:'093', decimals:0, unit:'pct',  left:69.38, top:16.59, title:'LI 883C' },
+      { codigo:'054', decimals:2, unit:'m3',   left:46.62, top:15.46, title:'FI881' },
+      { codigo:'095', decimals:2, unit:'pct',  left:58.25, top:18.20, title:'LI 883B' },
+      { codigo:'059', decimals:2, unit:'m3',   left:46.36, top:20.48, title:'FQ881' },
+      { codigo:'056', decimals:0, unit:'m3',   left:7.32,  top:32.24, title:'FQ880' },
+      { codigo:'054', decimals:2, unit:'m3',   left:7.01,  top:36.99, title:'FI880' },
+      { codigo:'004', decimals:2, unit:'bar',  left:14.99, top:37.76, title:'PI880' },
+      { codigo:'127', decimals:0, unit:'bool', left:16.40, top:47.77, title:'610-PP-024' },
+      { codigo:'137', decimals:0, unit:'bool', left:29.04, top:44.21, title:'610-PP-012' },
+      { codigo:'138', decimals:0, unit:'bool', left:29.50, top:57.13, title:'610-PP-013' },
+      { codigo:'139', decimals:0, unit:'bool', left:29.50, top:71.16, title:'610-PP-022' },
+      { codigo:'140', decimals:0, unit:'bool', left:29.38, top:83.18, title:'610-PP-023' },
+      { codigo:'100', decimals:2, unit:'pct',  left:58.24, top:51.63, title:'LI1120' },
+      { codigo:'099', decimals:2, unit:'pct',  left:58.05, top:59.29, title:'TK 15C LI 1120C' },
+      { codigo:'244', decimals:2, unit:'pct',  left:92.60, top:44.21, title:'LI1011C' },
+      { codigo:'008', decimals:2, unit:'m3',   left:82.01, top:57.49, title:'FI885' },
+      { codigo:'108', decimals:2, unit:'m3',   left:94.43, top:56.99, title:'FI10011A' },
+      { codigo:'009', decimals:2, unit:'m3',   left:81.56, top:62.10, title:'FQ885' },
+      { codigo:'109', decimals:2, unit:'m3',   left:94.66, top:62.30, title:'FI10011B' },
+      { codigo:'051', decimals:2, unit:'m3',   left:95.33, top:68.95, title:'FI874' },
+      { codigo:'053', decimals:2, unit:'m3',   left:95.35, top:73.76, title:'FQ874' },
+      { codigo:'001', decimals:2, unit:'m3',   left:13.32, top:66.56, title:'FI904' },
+      { codigo:'003', decimals:2, unit:'bar',  left:18.80, top:66.62, title:'PI903' },
+      { codigo:'101', decimals:2, unit:'pct',  left:39.79, top:77.64, title:'LI893' },
+      { codigo:'067', decimals:0, unit:'pct',  left:94.07, top:82.61, title:'LI873' },
     ],
   },
   adr: {
-    imageUrl: 'http://10.91.1.229:88/images/AdraDesadsorcionLavadoAcido.png',
+    image: 'http://10.91.1.229:88/images/AdraDesadsorcionLavadoAcido.png',
     buttons: [
       { codigo:'310', decimals:2, unit:'ph',   left:67.27, top:18.67, title:'AI1031' },
       { codigo:'311', decimals:2, unit:'ph',   left:59.01, top:59.04, title:'AI1038' },
@@ -158,7 +149,7 @@ const FLOWSHEETS = {
     ],
   },
   adorcion: {
-    imageUrl: 'http://10.91.1.229:88/images/ADRaAdsorcióndeCarbón.png',
+    image: 'http://10.91.1.229:88/images/ADRaAdsorcióndeCarbón.png',
     buttons: [
       { codigo:'8',   decimals:2, unit:'m3',   left:73.63, top:12.87, title:'FI885' },
       { codigo:'116', decimals:2, unit:'ph',   left:19.08, top:72.19, title:'AI1016' },
@@ -193,7 +184,7 @@ const FLOWSHEETS = {
     ],
   },
   ampliacion: {
-    imageUrl: 'http://10.91.1.229:88/images/AdrAmpliacionAdorciondeCarbon.png',
+    image: 'http://10.91.1.229:88/images/AdrAmpliacionAdorciondeCarbon.png',
     buttons: [
       { codigo:'10',  decimals:3, unit:'m3',   left:61.53, top:13.55, title:'FI885C' },
       { codigo:'117', decimals:2, unit:'ph',   left:19.29, top:72.29, title:'AI1016C' },
@@ -225,7 +216,7 @@ const FLOWSHEETS = {
     ],
   },
   desadsorcion: {
-    imageUrl: 'http://10.91.1.229:88/images/AdrDesadsorcion_1.png',
+    image: 'http://10.91.1.229:88/images/AdrDesadsorcion_1.png',
     buttons: [
       { codigo:'13',  decimals:3, unit:'m3',   left:84.71, top:74.56, title:'FI1087' },
       { codigo:'256', decimals:2, unit:'degC', left:33.10, top:17.17, title:'TI1054' },
@@ -259,7 +250,7 @@ const FLOWSHEETS = {
     ],
   },
   reactivos: {
-    imageUrl: 'http://10.91.1.229:88/images/ADRReactivosAmpliacionPreparacionHidroxido.png',
+    image: 'http://10.91.1.229:88/images/ADRReactivosAmpliacionPreparacionHidroxido.png',
     buttons: [
       { codigo:'284', decimals:2, unit:'bool', left:20.49, top:5.64,  title:'HV027' },
       { codigo:'267', decimals:2, unit:'pct',  left:42.87, top:26.20, title:'LI1068' },
@@ -285,31 +276,116 @@ const FLOWSHEETS = {
       { codigo:'348', decimals:2, unit:'bool', left:0.21,  top:86.96, title:'620-PS-007' },
     ],
   },
+  cianuro: {
+    image: 'http://10.91.1.229:88/images/ADRReactivosSistemaPreparaciónCianuro.png',
+    buttons: [
+      { codigo:'003', decimals:2, unit:'pct',  left:43.05, top:20.82, title:'LI1172' },
+      { codigo:'001', decimals:2, unit:'pct',  left:70.65, top:11.13, title:'LI1174' },
+      { codigo:'064', decimals:2, unit:'m3',   left:74.88, top:25.97, title:'QCNTK2' },
+      { codigo:'093', decimals:2, unit:'m3',   left:74.63, top:19.32, title:'QCNTK2C' },
+      { codigo:'169', decimals:2, unit:'ph',   left:20.19, top:22.62, title:'AI1171' },
+      { codigo:'182', decimals:2, unit:'m3',   left:83.15, top:69.03, title:'FI1218' },
+      { codigo:'177', decimals:2, unit:'m3',   left:31.86, top:64.62, title:'LI1191' },
+      { codigo:'181', decimals:2, unit:'m3',   left:60.26, top:55.80, title:'LI1216' },
+      { codigo:'184', decimals:2, unit:'min',  left:72.79, top:71.35, title:'PP062' },
+      { codigo:'178', decimals:2, unit:'bool', left:25.70, top:64.85, title:'640-AG-002' },
+      { codigo:'170', decimals:2, unit:'bool', left:35.21, top:17.75, title:'640-AG-003' },
+      { codigo:'183', decimals:2, unit:'bool', left:76.24, top:65.08, title:'640-PP-062' },
+      { codigo:'180', decimals:2, unit:'bool', left:39.20, top:80.16, title:'640-PP-064' },
+      { codigo:'172', decimals:2, unit:'bool', left:55.40, top:32.37, title:'640-PP-065' },
+      { codigo:'173', decimals:2, unit:'bool', left:84.99, top:12.18, title:'640-PP-066' },
+      { codigo:'174', decimals:2, unit:'bool', left:84.88, top:25.64, title:'640-PP-067' },
+      { codigo:'175', decimals:2, unit:'min',  left:87.69, top:36.54, title:'PP067' },
+      { codigo:'176', decimals:2, unit:'seg',  left:87.69, top:40.26, title:'PP067-SEG' },
+      { codigo:'171', decimals:2, unit:'bool', left:16.20, top:6.84,  title:'HV1170' },
+      { codigo:'179', decimals:2, unit:'bool', left:15.87, top:58.58, title:'HV1190' },
+    ],
+  },
+  naoh: {
+    image: 'http://10.91.1.229:88/images/PreparacióndeNaOH_oficial_2.png',
+    buttons: [
+      { codigo:'134', decimals:2, unit:'m3',  left:82.27, top:16.41, title:'FIT1220' },
+      { codigo:'133', decimals:2, unit:'m3',  left:56.13, top:19.61, title:'LI1203' },
+      { codigo:'135', decimals:2, unit:'pct', left:69.69, top:67.63, title:'SC1210' },
+      { codigo:'136', decimals:2, unit:'pct', left:69.82, top:80.63, title:'SC1211' },
+    ],
+  },
+  servicios: {
+    image: 'http://10.91.1.229:88/images/ServiciosPlantaAguaProcesosyContraincendio.png',
+    buttons: [
+      { codigo:'091', decimals:2, unit:'pct',  left:65.45, top:9.45,  title:'LI951' },
+      { codigo:'080', decimals:2, unit:'m3',   left:76.69, top:4.40,  title:'FI905' },
+      { codigo:'082', decimals:2, unit:'m3',   left:90.83, top:1.84,  title:'FI905C' },
+      { codigo:'186', decimals:2, unit:'bool', left:27.32, top:9.86,  title:'830-PP-067' },
+      { codigo:'187', decimals:2, unit:'bool', left:27.47, top:21.00, title:'830-PP-068' },
+      { codigo:'188', decimals:2, unit:'bool', left:27.43, top:32.37, title:'830-PP-069' },
+      { codigo:'189', decimals:2, unit:'m3',   left:38.95, top:10.33, title:'FI954' },
+    ],
+  },
+  tanques: {
+    image: 'http://10.91.1.229:88/images/Tanques TK1S.png',
+    buttons: [
+      { codigo:'094', decimals:2, unit:'pct',  left:68.87, top:19.44, title:'LI883AC' },
+      { codigo:'110', decimals:2, unit:'lpm',  left:72.72, top:6.15,  title:'CNATK2' },
+      { codigo:'111', decimals:2, unit:'lpm',  left:79.46, top:6.15,  title:'CNATK2C' },
+      { codigo:'067', decimals:2, unit:'pct',  left:37.27, top:82.62, title:'LI873' },
+      { codigo:'117', decimals:2, unit:'ph',   left:93.32, top:93.58, title:'AI1016C' },
+      { codigo:'100', decimals:2, unit:'pct',  left:84.33, top:80.21, title:'TK15LI1120' },
+      { codigo:'099', decimals:2, unit:'pct',  left:92.07, top:77.01, title:'TK15LI1120C' },
+      { codigo:'010', decimals:2, unit:'m3',   left:79.09, top:67.65, title:'FI885C' },
+      { codigo:'052', decimals:2, unit:'m3',   left:46.50, top:71.12, title:'FQ873' },
+      { codigo:'147', decimals:2, unit:'m3',   left:14.17, top:47.29, title:'FI880C' },
+      { codigo:'244', decimals:2, unit:'pct',  left:87.09, top:93.98, title:'LI1011C' },
+      { codigo:'245', decimals:2, unit:'pct',  left:31.21, top:20.82, title:'LI883BC' },
+      { codigo:'150', decimals:2, unit:'bool', left:29.30, top:68.42, title:'610-PP-013C' },
+      { codigo:'149', decimals:2, unit:'bool', left:29.41, top:52.71, title:'610-PP-014C' },
+      { codigo:'154', decimals:2, unit:'bool', left:72.57, top:91.87, title:'610-PP-040C' },
+      { codigo:'155', decimals:2, unit:'bool', left:80.47, top:91.87, title:'610-PP-041C' },
+      { codigo:'157', decimals:2, unit:'bool', left:72.00, top:62.05, title:'610-PP-081C' },
+      { codigo:'148', decimals:2, unit:'bar',  left:21.51, top:45.18, title:'PI880C' },
+    ],
+  },
+  tk1rica: {
+    image: 'http://10.91.1.229:88/images/TanqueTK1NSolucionRica.png',
+    buttons: [
+      { codigo:'003', decimals:2, unit:'m3',   left:26.72, top:19.20, title:'PI903' },
+      { codigo:'001', decimals:2, unit:'m3',   left:39.91, top:19.48, title:'FI904' },
+      { codigo:'064', decimals:2, unit:'m3',   left:40.21, top:13.90, title:'FQ904' },
+      { codigo:'093', decimals:2, unit:'pct',  left:2.63,  top:51.34, title:'LI883C' },
+      { codigo:'075', decimals:2, unit:'m3',   left:17.30, top:61.19, title:'FI902' },
+      { codigo:'063', decimals:2, unit:'m3',   left:17.31, top:55.88, title:'FQ902' },
+      { codigo:'143', decimals:2, unit:'m3',   left:5.08,  top:77.84, title:'FI901' },
+      { codigo:'141', decimals:4, unit:'bar',  left:57.13, top:17.98, title:'PI903B' },
+      { codigo:'137', decimals:2, unit:'bool', left:21.60, top:5.92,  title:'610-PP-012' },
+      { codigo:'138', decimals:2, unit:'bool', left:21.38, top:15.89, title:'610-PP-013' },
+      { codigo:'139', decimals:2, unit:'bool', left:21.38, top:26.57, title:'610-PP-022' },
+      { codigo:'140', decimals:2, unit:'bool', left:21.38, top:37.70, title:'610-PP-023' },
+    ],
+  },
 };
 
 const wrap = document.getElementById('canvas-wrap');
 const img  = document.getElementById('bg-img');
 let selected = null;
 
-function onFlowsheetChange() {
+function loadFromSelect() {
   const key = document.getElementById('fs-select').value;
-  const fs  = FLOWSHEETS[key];
-  document.getElementById('img-url').value = fs.imageUrl;
-  img.src = fs.imageUrl;
+  const fs = FLOWSHEETS[key];
+  document.getElementById('img-url').value = fs.image;
+  img.src = fs.image;
   img.onload = () => {
-    setStatus(`${img.naturalWidth}×${img.naturalHeight} — ${fs.buttons.length} botones`);
+    setStatus(`${fs.buttons.length} botones — ${img.naturalWidth}×${img.naturalHeight}`);
     wrap.querySelectorAll('.btn-editor').forEach(el => el.remove());
-    selected = null;
     fs.buttons.forEach(b => addButton(b));
-    updateOutput();
   };
-  img.onerror = () => setStatus('Error al cargar imagen — CORS o URL inválida');
+  img.onerror = () => setStatus('Error al cargar imagen');
 }
 
 function loadImage() {
-  img.src = document.getElementById('img-url').value.trim();
-  img.onload = () => setStatus(`${img.naturalWidth}×${img.naturalHeight}`);
-  img.onerror = () => setStatus('Error al cargar imagen');
+  const url = document.getElementById('img-url').value.trim();
+  img.src = url;
+  img.onload = () => setStatus(`Imagen cargada (${img.naturalWidth}×${img.naturalHeight})`);
+  img.onerror = () => setStatus('Error al cargar imagen — CORS o URL inválida');
 }
 
 function setStatus(msg) { document.getElementById('status').textContent = msg; }
@@ -326,25 +402,34 @@ function addButton(b) {
   el.style.top  = b.top  + '%';
   makeDraggable(el);
   wrap.appendChild(el);
+  return el;
 }
 
 function makeDraggable(el) {
+  let startX, startY, startL, startT;
+
   el.addEventListener('mousedown', e => {
     e.preventDefault();
     select(el);
     const rect = wrap.getBoundingClientRect();
-    const startX = e.clientX, startY = e.clientY;
-    const startL = parseFloat(el.style.left), startT = parseFloat(el.style.top);
+    startX = e.clientX;
+    startY = e.clientY;
+    startL = parseFloat(el.style.left);
+    startT = parseFloat(el.style.top);
 
     function onMove(e) {
-      el.style.left = (startL + (e.clientX - startX) / rect.width  * 100).toFixed(2) + '%';
-      el.style.top  = (startT + (e.clientY - startY) / rect.height * 100).toFixed(2) + '%';
+      const dx = (e.clientX - startX) / rect.width  * 100;
+      const dy = (e.clientY - startY) / rect.height * 100;
+      el.style.left = (startL + dx).toFixed(2) + '%';
+      el.style.top  = (startT + dy).toFixed(2) + '%';
       updateOutput();
     }
+
     function onUp() {
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
     }
+
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
   });
@@ -382,38 +467,36 @@ function updateOutput() {
 }
 
 function generateHTML() {
-  return getButtons().map(b =>
-    `  <a href="../index.html?codigo=${b.codigo}&unit=${b.unit}" class="scada-btn" data-codigo="${b.codigo}" data-decimals="${b.decimals}" data-unit="${b.unit}" style="left:${b.left}%;top:${b.top}%" title="${b.title}">–</a>`
-  ).join('\n');
+  return getButtons().map(b => {
+    const href = `index.html?codigo=${b.codigo}&unit=${b.unit}`;
+    return `  <a href="${href}" class="scada-btn" data-codigo="${b.codigo}" data-decimals="${b.decimals}" data-unit="${b.unit}" style="left:${b.left}%;top:${b.top}%" title="${b.title}">–</a>`;
+  }).join('\n');
 }
 
 function copyHTML() {
   const html = generateHTML();
   const btn = document.getElementById('btn-copy');
-  const ok = () => {
-    btn.textContent = '✓ Copiado';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'Copiar HTML'; btn.classList.remove('copied'); }, 2000);
-  };
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(html).then(ok).catch(() => fallback(html, ok));
+    navigator.clipboard.writeText(html).then(() => flash(btn));
   } else {
-    fallback(html, ok);
+    const ta = document.createElement('textarea');
+    ta.value = html;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    flash(btn);
   }
 }
 
-function fallback(text, cb) {
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.cssText = 'position:fixed;opacity:0';
-  document.body.appendChild(ta);
-  ta.focus(); ta.select();
-  document.execCommand('copy');
-  document.body.removeChild(ta);
-  cb();
+function flash(btn) {
+  btn.textContent = '✓ Copiado';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Copiar HTML'; btn.classList.remove('copied'); }, 2000);
 }
 
-onFlowsheetChange();
+// Cargar primer flowsheet al iniciar
+loadFromSelect();
 </script>
 </body>
 </html>

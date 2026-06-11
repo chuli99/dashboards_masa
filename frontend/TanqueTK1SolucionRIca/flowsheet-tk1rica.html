@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flowsheet – Tanque TK1 Solución Rica</title>
+  <link rel="stylesheet" href="../flowsheet-tk1.css">
+</head>
+<body>
+
+<div class="mimico-container">
+  <img src="http://10.91.1.229:88/images/TanqueTK1NSolucionRica.png" alt="Flowsheet Tanque TK1 Solución Rica" class="mimico-bg">
+
+  <a href="../index.html?codigo=003&unit=m3" class="scada-btn" data-codigo="003" data-decimals="2" data-unit="m3" style="left:26.72%;top:19.20%" title="PI903">–</a>
+  <a href="../index.html?codigo=001&unit=m3" class="scada-btn" data-codigo="001" data-decimals="2" data-unit="m3" style="left:39.91%;top:19.48%" title="FI904">–</a>
+  <a href="../index.html?codigo=064&unit=m3" class="scada-btn" data-codigo="064" data-decimals="2" data-unit="m3" style="left:40.21%;top:13.90%" title="FQ904">–</a>
+  <a href="../index.html?codigo=093&unit=pct" class="scada-btn" data-codigo="093" data-decimals="2" data-unit="pct" style="left:2.63%;top:51.34%" title="LI883C">–</a>
+  <a href="../index.html?codigo=075&unit=m3" class="scada-btn" data-codigo="075" data-decimals="2" data-unit="m3" style="left:17.30%;top:61.19%" title="FI902">–</a>
+  <a href="../index.html?codigo=063&unit=m3" class="scada-btn" data-codigo="063" data-decimals="2" data-unit="m3" style="left:17.31%;top:55.88%" title="FQ902">–</a>
+  <a href="../index.html?codigo=143&unit=m3" class="scada-btn" data-codigo="143" data-decimals="2" data-unit="m3" style="left:5.08%;top:77.84%" title="FI901">–</a>
+  <a href="../index.html?codigo=141&unit=bar" class="scada-btn" data-codigo="141" data-decimals="4" data-unit="bar" style="left:57.13%;top:17.98%" title="PI903B">–</a>
+  <a href="../index.html?codigo=137&unit=bool" class="scada-btn" data-codigo="137" data-decimals="2" data-unit="bool" style="left:21.60%;top:5.92%" title="610-PP-012">–</a>
+  <a href="../index.html?codigo=138&unit=bool" class="scada-btn" data-codigo="138" data-decimals="2" data-unit="bool" style="left:21.38%;top:15.89%" title="610-PP-013">–</a>
+  <a href="../index.html?codigo=139&unit=bool" class="scada-btn" data-codigo="139" data-decimals="2" data-unit="bool" style="left:21.38%;top:26.57%" title="610-PP-022">–</a>
+  <a href="../index.html?codigo=140&unit=bool" class="scada-btn" data-codigo="140" data-decimals="2" data-unit="bool" style="left:21.38%;top:37.70%" title="610-PP-023">–</a>
+</div>
+
+<script src="../config.js"></script>
+<script>
+const API = window.API_URL || `http://${window.location.hostname}:5050`;
+const REFRESH_MS = 60000;
+const UNIT_SUFFIX = { m3: ' m³', pct: ' %', bar: ' bar' };
+
+function formatVal(val, decimals, unit) {
+  if (unit === 'bool') return val >= 1 ? 'On' : 'Off';
+  return val.toFixed(decimals) + (UNIT_SUFFIX[unit] || '');
+}
+
+async function cargarValores() {
+  const btns = [...document.querySelectorAll('.scada-btn')];
+  const codigos = [...new Set(btns.map(b => b.dataset.codigo))];
+
+  const resultados = await Promise.allSettled(
+    codigos.map(c => fetch(`${API}/api/variables/${c}/last`).then(r => r.json()))
+  );
+
+  const mapa = {};
+  resultados.forEach((r, i) => {
+    if (r.status === 'fulfilled' && r.value.valor !== undefined) mapa[codigos[i]] = r.value.valor;
+  });
+
+  btns.forEach(btn => {
+    const val = mapa[btn.dataset.codigo];
+    if (val !== undefined) btn.textContent = formatVal(val, parseInt(btn.dataset.decimals), btn.dataset.unit);
+  });
+}
+
+cargarValores();
+setInterval(cargarValores, REFRESH_MS);
+</script>
+
+</body>
+</html>

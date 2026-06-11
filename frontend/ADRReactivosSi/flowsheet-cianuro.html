@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flowsheet – ADR Reactivos Sistema Preparación Cianuro</title>
+  <link rel="stylesheet" href="../flowsheet-tk1.css">
+</head>
+<body>
+
+<div class="mimico-container">
+  <img src="http://10.91.1.229:88/images/ADRReactivosSistemaPreparaciónCianuro.png" alt="Flowsheet ADR Reactivos Sistema Preparación Cianuro" class="mimico-bg">
+
+  <a href="../index.html?codigo=003&unit=pct" class="scada-btn" data-codigo="003" data-decimals="2" data-unit="pct" style="left:43.05%;top:20.82%" title="LI1172">–</a>
+  <a href="../index.html?codigo=001&unit=pct" class="scada-btn" data-codigo="001" data-decimals="2" data-unit="pct" style="left:70.65%;top:11.13%" title="LI1174">–</a>
+  <a href="../index.html?codigo=064&unit=m3" class="scada-btn" data-codigo="064" data-decimals="2" data-unit="m3" style="left:74.88%;top:25.97%" title="QCNTK2">–</a>
+  <a href="../index.html?codigo=093&unit=m3" class="scada-btn" data-codigo="093" data-decimals="2" data-unit="m3" style="left:74.63%;top:19.32%" title="QCNTK2C">–</a>
+  <a href="../index.html?codigo=169&unit=ph" class="scada-btn" data-codigo="169" data-decimals="2" data-unit="ph" style="left:20.19%;top:22.62%" title="AI1171">–</a>
+  <a href="../index.html?codigo=182&unit=m3" class="scada-btn" data-codigo="182" data-decimals="2" data-unit="m3" style="left:83.15%;top:69.03%" title="FI1218">–</a>
+  <a href="../index.html?codigo=177&unit=m3" class="scada-btn" data-codigo="177" data-decimals="2" data-unit="m3" style="left:31.86%;top:64.62%" title="LI1191">–</a>
+  <a href="../index.html?codigo=181&unit=m3" class="scada-btn" data-codigo="181" data-decimals="2" data-unit="m3" style="left:60.26%;top:55.80%" title="LI1216">–</a>
+  <a href="../index.html?codigo=184&unit=min" class="scada-btn" data-codigo="184" data-decimals="2" data-unit="min" style="left:72.79%;top:71.35%" title="PP062">–</a>
+  <a href="../index.html?codigo=178&unit=bool" class="scada-btn" data-codigo="178" data-decimals="2" data-unit="bool" style="left:25.70%;top:64.85%" title="640-AG-002">–</a>
+  <a href="../index.html?codigo=170&unit=bool" class="scada-btn" data-codigo="170" data-decimals="2" data-unit="bool" style="left:35.21%;top:17.75%" title="640-AG-003">–</a>
+  <a href="../index.html?codigo=183&unit=bool" class="scada-btn" data-codigo="183" data-decimals="2" data-unit="bool" style="left:76.24%;top:65.08%" title="640-PP-062">–</a>
+  <a href="../index.html?codigo=180&unit=bool" class="scada-btn" data-codigo="180" data-decimals="2" data-unit="bool" style="left:39.20%;top:80.16%" title="640-PP-064">–</a>
+  <a href="../index.html?codigo=172&unit=bool" class="scada-btn" data-codigo="172" data-decimals="2" data-unit="bool" style="left:55.40%;top:32.37%" title="640-PP-065">–</a>
+  <a href="../index.html?codigo=173&unit=bool" class="scada-btn" data-codigo="173" data-decimals="2" data-unit="bool" style="left:84.99%;top:12.18%" title="640-PP-066">–</a>
+  <a href="../index.html?codigo=174&unit=bool" class="scada-btn" data-codigo="174" data-decimals="2" data-unit="bool" style="left:84.88%;top:25.64%" title="640-PP-067">–</a>
+  <a href="../index.html?codigo=175&unit=min" class="scada-btn" data-codigo="175" data-decimals="2" data-unit="min" style="left:87.69%;top:36.54%" title="PP067">–</a>
+  <a href="../index.html?codigo=176&unit=seg" class="scada-btn" data-codigo="176" data-decimals="2" data-unit="seg" style="left:87.69%;top:40.26%" title="PP067-SEG">–</a>
+  <a href="../index.html?codigo=171&unit=bool" class="scada-btn" data-codigo="171" data-decimals="2" data-unit="bool" style="left:16.20%;top:6.84%" title="HV1170">–</a>
+  <a href="../index.html?codigo=179&unit=bool" class="scada-btn" data-codigo="179" data-decimals="2" data-unit="bool" style="left:15.87%;top:58.58%" title="HV1190">–</a>
+</div>
+
+<script src="../config.js"></script>
+<script>
+const API = window.API_URL || `http://${window.location.hostname}:5050`;
+const REFRESH_MS = 60000;
+const UNIT_SUFFIX = { pct: ' %', m3: ' m³', ph: ' pH', min: ' min', seg: ' s' };
+
+function formatVal(val, decimals, unit) {
+  if (unit === 'bool') return val >= 1 ? 'On' : 'Off';
+  return val.toFixed(decimals) + (UNIT_SUFFIX[unit] || '');
+}
+
+async function cargarValores() {
+  const btns = [...document.querySelectorAll('.scada-btn')];
+  const codigos = [...new Set(btns.map(b => b.dataset.codigo))];
+
+  const resultados = await Promise.allSettled(
+    codigos.map(c => fetch(`${API}/api/variables/${c}/last`).then(r => r.json()))
+  );
+
+  const mapa = {};
+  resultados.forEach((r, i) => {
+    if (r.status === 'fulfilled' && r.value.valor !== undefined) mapa[codigos[i]] = r.value.valor;
+  });
+
+  btns.forEach(btn => {
+    const val = mapa[btn.dataset.codigo];
+    if (val !== undefined) btn.textContent = formatVal(val, parseInt(btn.dataset.decimals), btn.dataset.unit);
+  });
+}
+
+cargarValores();
+setInterval(cargarValores, REFRESH_MS);
+</script>
+
+</body>
+</html>
