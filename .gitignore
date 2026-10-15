@@ -1,4 +1,5 @@
 .env
+.env*.local
 .venv/
 __pycache__/
 *.pyc
@@ -10,5 +11,7 @@ frontend/.next/
 frontend/out/
 frontend/next-env.d.ts
 *.tsbuildinfo
+npm-debug.log*
+frontend/config.js
 flowsheets_grafana/
 CLAUDE.md

@@ -1,0 +1,138 @@
+.page {
+  font-family: sans-serif;
+  background: #1e293b;
+  color: #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #0f172a;
+  border-bottom: 1px solid #334155;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.toolbar label {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+.toolbar select,
+.toolbar input {
+  background: #1e293b;
+  border: 1px solid #475569;
+  color: #f1f5f9;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}
+.toolbar select {
+  width: 240px;
+}
+.toolbar input {
+  width: 320px;
+}
+.toolbar button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.toolbar button:hover {
+  background: #1d4ed8;
+}
+.toolbar .copy {
+  background: #16a34a;
+}
+.toolbar .copy:hover {
+  background: #15803d;
+}
+.toolbar .copied {
+  background: #475569;
+}
+
+.status {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-left: auto;
+}
+.hint {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.workspace {
+  flex: 1;
+  overflow: auto;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.canvas {
+  position: relative;
+  display: inline-block;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
+}
+
+.bg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+.btn {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  background: rgba(15, 23, 42, 0.85);
+  color: #f1f5f9;
+  border: 1.5px solid #3b82f6;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: grab;
+  user-select: none;
+  white-space: nowrap;
+  transition:
+    border-color 0.1s,
+    background 0.1s;
+}
+.btn:active {
+  cursor: grabbing;
+}
+.bool {
+  border-color: #a855f7;
+}
+.selected {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.2);
+  z-index: 10;
+}
+
+.outputWrap {
+  padding: 0 20px 20px;
+  flex-shrink: 0;
+}
+.output {
+  width: 100%;
+  height: 160px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 12px;
+  font-family: monospace;
+  font-size: 0.72rem;
+  color: #7dd3fc;
+  resize: vertical;
+}

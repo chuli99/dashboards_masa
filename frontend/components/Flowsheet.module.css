@@ -1,0 +1,40 @@
+.page {
+  background: #111;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+}
+
+.container {
+  position: relative;
+  width: 100%;
+  max-width: 1920px;
+}
+
+.bg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.btn {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: #96d98d;
+  font-family: monospace;
+  font-size: 0.7vw;
+  font-weight: 600;
+  padding: 2px 5px;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    outline 0.2s;
+}
+.btn:hover {
+  background: rgba(0, 0, 0, 0.92);
+  outline: 1px solid #96d98d;
+}
