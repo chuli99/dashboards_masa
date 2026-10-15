@@ -65,8 +65,8 @@ export default function Dashboard({ historico = false }: { historico?: boolean }
   const card = (index: number) => <PeriodCard codigo={codigo} variable={variable} historico={historico} index={index} />;
 
   return (
-    <div className={s.page}>
-      <header className={historico ? s.headerHist : s.header}>
+    <>
+      <div className={s.header}>
         <div className={s.info}>
           <span className={s.title}>{variable ? nombre : 'PLC Dashboard'}</span>
           <span className={s.sub}>
@@ -79,9 +79,9 @@ export default function Dashboard({ historico = false }: { historico?: boolean }
             Actualizar
           </button>
         </div>
-      </header>
+      </div>
 
-      <main className={s.main}>
+      <div className={s.main}>
         {!codigo ? (
           <div className={s.error}>Falta el parámetro ?codigo= en la URL.</div>
         ) : (
@@ -105,7 +105,7 @@ export default function Dashboard({ historico = false }: { historico?: boolean }
           {card(1)}
           {card(2)}
         </div>
-      </main>
-    </div>
+      </div>
+    </>
   );
 }

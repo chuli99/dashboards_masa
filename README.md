@@ -16,13 +16,13 @@ sudo apt-get update
 ACCEPT_EULA=Y sudo apt-get install -y msodbcsql17 unixodbc-dev
 ```
 
-### Python 3.11+ y Node 20+
+### Python 3.11+, Node 20+ y pnpm
 
 ## Instalación
 
 ```bash
 pip install -r backend/requirements.txt
-cd frontend && npm install
+cd frontend && pnpm install
 ```
 
 ## Configuración
@@ -45,7 +45,7 @@ Editar `.env`:
 ## Producción
 
 ```bash
-cd frontend && npm run build   # genera frontend/out
+cd frontend && pnpm build      # genera frontend/out
 uvicorn backend.main:app --host 0.0.0.0 --port 8000
 ```
 
@@ -55,7 +55,7 @@ FastAPI sirve la API y el frontend desde el mismo origen (sin CORS ni Node en el
 
 ```bash
 uvicorn backend.main:app --reload --port 8000
-cd frontend && npm run dev      # http://localhost:3000, proxy de /api → API_URL (default http://localhost:8000)
+cd frontend && pnpm dev        # http://localhost:3000 (o 3001 si Grafana ocupa el 3000), proxy de /api → API_URL (default http://localhost:8000)
 ```
 
 Variables opcionales del frontend: `API_URL` (proxy en dev) y `NEXT_PUBLIC_IMG_BASE` (base de las imágenes de flowsheets, default `http://10.91.1.229:88/images/`, se fija en el build).

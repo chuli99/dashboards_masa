@@ -11,7 +11,7 @@ export default function Home() {
   if (useSearchParams().has('codigo')) return <Dashboard />;
 
   return (
-    <main className={s.main}>
+    <div className={s.main}>
       <h1>Flowsheets</h1>
       <div className={s.grid}>
         {Object.entries(FLOWSHEETS).map(([slug, fs]) => (
@@ -21,6 +21,6 @@ export default function Home() {
           </Link>
         ))}
       </div>
-    </main>
+    </div>
   );
 }

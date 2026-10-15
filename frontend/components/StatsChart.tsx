@@ -24,9 +24,10 @@ const SERIES = [
 ] as const;
 
 const AXIS = {
-  grid: { color: '#f1f5f9' },
+  // Grises translúcidos: se leen igual en tema claro y oscuro
+  grid: { color: 'rgba(148, 163, 184, 0.15)' },
   ticks: { font: { size: 11 }, color: '#94a3b8' },
-  border: { color: '#e2e8f0' },
+  border: { color: 'rgba(148, 163, 184, 0.3)' },
 };
 
 export default function StatsChart({ data, line }: { data: Stats; line: boolean }) {
@@ -67,7 +68,7 @@ export default function StatsChart({ data, line }: { data: Stats; line: boolean 
         plugins: {
           legend: {
             position: 'top',
-            labels: { boxWidth: line ? 16 : 12, font: { size: 11 }, usePointStyle: line },
+            labels: { boxWidth: line ? 16 : 12, font: { size: 11 }, color: '#94a3b8', usePointStyle: line },
           },
           tooltip: {
             filter: (item) => item.raw != null,
