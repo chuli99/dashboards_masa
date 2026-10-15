@@ -68,7 +68,7 @@ Variables opcionales del frontend: `API_URL` (proxy en dev) y `NEXT_PUBLIC_IMG_B
 | `/?codigo=123` | Gráficos de una variable |
 | `/historico/?codigo=123` | Gráficos desde el último dato |
 | `/flowsheet/<slug>/` | Mímico SCADA (slugs = archivos en `frontend/flowsheets/`) |
-| `/capacidad/?codigo=123` | Capacidad Cp/Cpk (24 h y semana) para supervisores |
+| `/capacidad/<proceso>/` | Cp/Cpk por proceso (adsorcion, elucion, electrodeposicion); variables fijas en `frontend/lib/procesos.ts` |
 | `/editor/` | Editor de posiciones de botones |
 
 ## Uso
@@ -126,7 +126,7 @@ curl "http://localhost:8000/api/variables/123/capacidad?horas=24"    # 24 h, pun
 curl "http://localhost:8000/api/variables/123/capacidad?horas=168"   # 7 días, puntos de 30 min
 ```
 
-LSL/USL = `VALORMIN`/`VALORMAX` de `Variables`. σ = desvío estándar global de los datos crudos de la ventana:
+LSL/USL = parámetros `lsl`/`usl` (definidos por variable en `frontend/lib/procesos.ts`) o, si faltan, `VALORMIN`/`VALORMAX` de `Variables`. σ = desvío estándar global de los datos crudos de la ventana:
 `Cp = (USL − LSL) / 6σ`, `Cpk = min(USL − μ, μ − LSL) / 3σ`.
 
 ### Health check

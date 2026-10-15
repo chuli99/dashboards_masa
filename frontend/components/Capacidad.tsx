@@ -1,40 +1,35 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import CapacidadChart from './CapacidadChart';
-import { FLOWSHEETS, type FlowsheetButton } from '@/flowsheets';
-import { fetcher, formatVal, type Capacidad as CapacidadData, type Variable } from '@/lib/api';
+import { fetcher, formatVal, type Capacidad as CapacidadData } from '@/lib/api';
+import type { Proceso, VariableCapacidad } from '@/lib/procesos';
 import s from './Capacidad.module.css';
 
 const VENTANAS = [
-  { horas: 24, titulo: 'Últimas 24 horas', refresh: 5 * 60000 },
-  { horas: 168, titulo: 'Última semana', refresh: 30 * 60000 },
+  { horas: 24, titulo: 'Últimas 24 horas', corto: '24 horas', refresh: 5 * 60000 },
+  { horas: 168, titulo: 'Última semana', corto: 'Semana', refresh: 30 * 60000 },
 ];
 
-// Variables analógicas de los flowsheets (Cp/Cpk no aplica a On/Off), sin repetir, agrupadas por flowsheet
-const vistos = new Set<number>();
-const GRUPOS = Object.values(FLOWSHEETS)
-  .map((fs) => ({
-    titulo: fs.title,
-    botones: fs.buttons.filter((b) => b.unit !== 'bool' && !vistos.has(b.codigo) && vistos.add(b.codigo)),
-  }))
-  .filter((g) => g.botones.length);
-const BOTONES = new Map<number, FlowsheetButton>(GRUPOS.flatMap((g) => g.botones.map((b) => [b.codigo, b])));
+type VentanaProps = { v: VariableCapacidad } & (typeof VENTANAS)[number];
 
-const useCapacidad = (codigo: number, horas: number, refresh: number) =>
-  useSWR<CapacidadData>(`/api/variables/${codigo}/capacidad?horas=${horas}`, fetcher, { refreshInterval: refresh });
+const useCapacidad = ({ v, horas, refresh }: VentanaProps) => {
+  const q = new URLSearchParams({ horas: String(horas) });
+  if (v.lsl != null) q.set('lsl', String(v.lsl));
+  if (v.usl != null) q.set('usl', String(v.usl));
+  return useSWR<CapacidadData>(`/api/variables/${v.codigo}/capacidad?${q}`, fetcher, { refreshInterval: refresh });
+};
 
 const fmt = (n: number | null | undefined, d = 2) => (n == null ? '–' : n.toFixed(d));
 
 // ≥ 1,33 capaz · ≥ 1 marginal · < 1 no capaz
-const nivel = (v: number | null) => (v == null ? '' : v >= 1.33 ? s.ok : v >= 1 ? s.warn : s.bad);
+const nivel = (v: number | null | undefined) => (v == null ? '' : v >= 1.33 ? s.ok : v >= 1 ? s.warn : s.bad);
 
-function VentanaCard({ codigo, horas, titulo, refresh }: { codigo: number } & (typeof VENTANAS)[number]) {
-  const { data, error } = useCapacidad(codigo, horas, refresh);
+function VentanaCard(props: VentanaProps) {
+  const { data, error } = useCapacidad(props);
   return (
     <div className={s.card}>
-      <h2>{titulo}</h2>
+      <h2>{props.titulo}</h2>
       {error ? (
         <div className={s.loading}>Error: {error.message}</div>
       ) : !data ? (
@@ -48,101 +43,94 @@ function VentanaCard({ codigo, horas, titulo, refresh }: { codigo: number } & (t
   );
 }
 
-function FilaCapacidad({ codigo, horas, titulo, refresh }: { codigo: number } & (typeof VENTANAS)[number]) {
-  const { data } = useCapacidad(codigo, horas, refresh);
+function FilaCapacidad(props: VentanaProps) {
+  const { data } = useCapacidad(props);
   return (
     <tr>
-      <th>{titulo.replace('Últimas ', '').replace('Última ', '')}</th>
-      <td className={nivel(data?.cp ?? null)}>{fmt(data?.cp)}</td>
-      <td className={nivel(data?.cpk ?? null)}>{fmt(data?.cpk)}</td>
+      <th>{props.corto}</th>
+      <td className={nivel(data?.cp)}>{fmt(data?.cp)}</td>
+      <td className={nivel(data?.cpk)}>{fmt(data?.cpk)}</td>
       <td>{fmt(data?.media)}</td>
       <td>{fmt(data?.sigma)}</td>
     </tr>
   );
 }
 
-export default function Capacidad() {
-  const router = useRouter();
-  const codigo = Number(useSearchParams().get('codigo')) || 0;
-  const boton = BOTONES.get(codigo);
-  const { data: variable, error } = useSWR<Variable>(codigo ? `/api/variables/${codigo}` : null, fetcher);
-  const { data: last } = useSWR<{ valor: number }>(codigo ? `/api/variables/${codigo}/last` : null, fetcher, {
+function SeccionVariable({ v }: { v: VariableCapacidad }) {
+  // Límites efectivos (config o tabla Variables), tal como los usa el cálculo
+  const { data: cap } = useCapacidad({ v, ...VENTANAS[0] });
+  const { data: last } = useSWR<{ valor: number }>(`/api/variables/${v.codigo}/last`, fetcher, {
     refreshInterval: 60000,
   });
-
-  const valor = last && (boton ? formatVal(last.valor, boton.decimals, boton.unit) : last.valor.toFixed(2));
+  const sinLimites = cap && cap.usl <= cap.lsl;
 
   return (
-    <div className={s.page}>
-      <div className={s.header}>
-        <div className={s.info}>
-          <span className={s.title}>Capacidad de proceso</span>
-          <span className={s.sub}>
-            {variable
-              ? `${variable.nombre} · LSL ${variable.valormin} · USL ${variable.valormax}`
-              : 'Cp y Cpk con los límites VALORMIN / VALORMAX de la variable'}
-          </span>
-        </div>
-        <select value={codigo || ''} onChange={(e) => router.replace(`/capacidad/?codigo=${e.target.value}`)}>
-          <option value="" disabled>
-            Elegir variable…
-          </option>
-          {GRUPOS.map((g) => (
-            <optgroup key={g.titulo} label={g.titulo}>
-              {g.botones.map((b) => (
-                <option key={b.codigo} value={b.codigo}>
-                  {b.tag}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
+    <section className={s.seccion}>
+      <div className={s.info}>
+        <span className={s.title}>{v.nombre}</span>
+        <span className={s.sub}>
+          {v.tag} · Código {v.codigo}
+          {cap && ` · LSL ${cap.lsl} · USL ${cap.usl}`}
+        </span>
       </div>
+      {sinLimites && (
+        <p className={s.aviso}>
+          Sin límites de especificación válidos: definí lsl/usl en lib/procesos.ts o VALORMIN/VALORMAX en la tabla
+          Variables.
+        </p>
+      )}
 
-      {!codigo ? (
-        <p className={s.noData}>Elegí una variable para ver su capacidad.</p>
-      ) : error ? (
-        <div className={s.error}>{`Variable ${codigo}: ${error.message}`}</div>
-      ) : (
-        <div className={s.grid}>
-          <div className={s.charts}>
-            {VENTANAS.map((v) => (
-              <VentanaCard key={v.horas} codigo={codigo} {...v} />
-            ))}
+      <div className={s.grid}>
+        <div className={s.charts}>
+          {VENTANAS.map((w) => (
+            <VentanaCard key={w.horas} v={v} {...w} />
+          ))}
+        </div>
+
+        <aside className={s.side}>
+          <div className={s.tag}>
+            <span className={s.tagNombre}>{v.tag}</span>
+            <span className={s.tagValor}>{last ? formatVal(last.valor, v.decimals, v.unit) : '–'}</span>
+            <span className={s.tagDesc}>{v.nombre}</span>
           </div>
 
-          <aside className={s.side}>
-            <div className={s.tag}>
-              <span className={s.tagNombre}>{boton?.tag ?? `Variable ${codigo}`}</span>
-              <span className={s.tagValor}>{valor ?? '–'}</span>
-              <span className={s.tagDesc}>{variable?.nombre}</span>
-            </div>
+          <div className={s.card}>
+            <h2>Índices</h2>
+            <table className={s.tabla}>
+              <thead>
+                <tr>
+                  <th />
+                  <th>Cp</th>
+                  <th>Cpk</th>
+                  <th>Media</th>
+                  <th>σ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {VENTANAS.map((w) => (
+                  <FilaCapacidad key={w.horas} v={v} {...w} />
+                ))}
+              </tbody>
+            </table>
+            <p className={s.leyenda}>
+              <span className={s.ok}>≥ 1,33 capaz</span> · <span className={s.warn}>1 – 1,33 marginal</span> ·{' '}
+              <span className={s.bad}>&lt; 1 no capaz</span>
+            </p>
+          </div>
+        </aside>
+      </div>
+    </section>
+  );
+}
 
-            <div className={s.card}>
-              <h2>Índices</h2>
-              <table className={s.tabla}>
-                <thead>
-                  <tr>
-                    <th />
-                    <th>Cp</th>
-                    <th>Cpk</th>
-                    <th>Media</th>
-                    <th>σ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {VENTANAS.map((v) => (
-                    <FilaCapacidad key={v.horas} codigo={codigo} {...v} />
-                  ))}
-                </tbody>
-              </table>
-              <p className={s.leyenda}>
-                <span className={s.ok}>≥ 1,33 capaz</span> · <span className={s.warn}>1 – 1,33 marginal</span> ·{' '}
-                <span className={s.bad}>&lt; 1 no capaz</span>
-              </p>
-            </div>
-          </aside>
-        </div>
+export default function Capacidad({ proceso }: { proceso: Proceso }) {
+  return (
+    <div className={s.page}>
+      <h1 className={s.proceso}>Capacidad de proceso · {proceso.titulo}</h1>
+      {proceso.variables.length ? (
+        proceso.variables.map((v) => <SeccionVariable key={v.codigo} v={v} />)
+      ) : (
+        <p className={s.noData}>Todavía no hay variables definidas para {proceso.titulo}.</p>
       )}
     </div>
   );

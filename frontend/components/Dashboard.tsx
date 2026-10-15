@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import useSWR, { useSWRConfig } from 'swr';
 import StatsChart from './StatsChart';
 import { fetcher, type Stats, type Variable } from '@/lib/api';
+import { procesoDe } from '@/lib/procesos';
 import s from './Dashboard.module.css';
 
 const PERIODS = [
@@ -51,6 +52,7 @@ export default function Dashboard({ historico = false }: { historico?: boolean }
   const params = useSearchParams();
   const codigo = params.get('codigo') ?? '';
   const base = `/api/variables/${codigo}`;
+  const proceso = procesoDe(Number(codigo));
   const { data: variable, error } = useSWR<Variable>(codigo && base, fetcher);
   const { data: last } = useSWR<{ valor: number }>(codigo && `${base}/last`, fetcher);
   const { mutate } = useSWRConfig();
@@ -76,8 +78,8 @@ export default function Dashboard({ historico = false }: { historico?: boolean }
         </div>
         <div className={s.headerRight}>
           {historico && <span className={s.badge}>Desde último dato</span>}
-          {codigo && (
-            <Link href={`/capacidad/?codigo=${codigo}`} className={s.link}>
+          {proceso && (
+            <Link href={`/capacidad/${proceso}/`} className={s.link}>
               Ver Cp/Cpk
             </Link>
           )}

@@ -36,6 +36,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { FLOWSHEETS } from '@/flowsheets';
+import { PROCESOS } from '@/lib/procesos';
 
 const LOGO_ALT = 'Minas Argentinas S.A. — Gualcamayo';
 
@@ -183,7 +184,11 @@ function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Supervisión</SidebarGroupLabel>
           <SidebarMenu>
-            <Item href="/capacidad/" titulo="Capacidad Cp/Cpk" icono={ChartAverageIcon} />
+            <Desplegable
+              titulo="Capacidad Cp/Cpk"
+              icono={ChartAverageIcon}
+              items={Object.entries(PROCESOS).map(([key, p]) => ({ href: `/capacidad/${key}/`, titulo: p.titulo }))}
+            />
           </SidebarMenu>
         </SidebarGroup>
         <SidebarGroup>

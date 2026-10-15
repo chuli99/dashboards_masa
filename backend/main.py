@@ -374,17 +374,24 @@ ORDER BY t
 
 
 @app.get("/api/variables/{codigo}/capacidad")
-def get_capacidad(codigo: int, horas: int = Query(24)):
-    """Cp/Cpk de la ventana usando VALORMIN/VALORMAX como LSL/USL y σ global de los datos crudos."""
+def get_capacidad(
+    codigo: int,
+    horas: int = Query(24),
+    lsl: Optional[float] = None,
+    usl: Optional[float] = None,
+):
+    """Cp/Cpk de la ventana con σ global de los datos crudos. LSL/USL por parámetro o, si faltan, VALORMIN/VALORMAX."""
     if horas not in _CAPACIDAD_BUCKET:
         raise HTTPException(422, f"horas debe ser uno de {list(_CAPACIDAD_BUCKET)}")
-    cache_key = f"cap:{codigo}:{horas}"
+    cache_key = f"cap:{codigo}:{horas}:{lsl}:{usl}"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
 
-    variable = get_variable(codigo)
-    lsl, usl = variable["valormin"], variable["valormax"]
+    if lsl is None or usl is None:
+        variable = get_variable(codigo)
+        lsl = variable["valormin"] if lsl is None else lsl
+        usl = variable["valormax"] if usl is None else usl
     params = {"codigo": codigo, "horas": horas}
     try:
         with engine.connect() as conn:
