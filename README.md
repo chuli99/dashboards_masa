@@ -1,6 +1,6 @@
 # PLC Dashboard
 
-Visualización de variables PLC desde SQL Server con FastAPI + Chart.js. Muestra 3 gráficos por variable: últimos 30 días, últimos 7 días y últimas 12 horas, con clasificación Bajo/Medio/Alto según los límites configurados en la tabla `Variables`.
+Visualización de variables PLC desde SQL Server con FastAPI + Next.js (export estático) + Chart.js. Muestra 3 gráficos por variable: últimos 30 días, últimos 7 días y últimas 12 horas, con clasificación Bajo/Medio/Alto según los límites configurados en la tabla `Variables`.
 
 ## Requisitos previos
 
@@ -16,12 +16,13 @@ sudo apt-get update
 ACCEPT_EULA=Y sudo apt-get install -y msodbcsql17 unixodbc-dev
 ```
 
-### Python 3.11+
+### Python 3.11+ y Node 20+
 
 ## Instalación
 
 ```bash
 pip install -r backend/requirements.txt
+cd frontend && npm install
 ```
 
 ## Configuración
@@ -39,31 +40,37 @@ Editar `.env`:
 | `DB_USER` | Usuario SQL |
 | `DB_PASSWORD` | Contraseña |
 | `DB_DRIVER` | Driver ODBC (default: `ODBC Driver 17 for SQL Server`) |
-| `CORS_ORIGINS` | Orígenes permitidos en formato JSON (ej: `["http://localhost:8080"]`) |
 | `CACHE_TTL` | TTL del cache en segundos (default: `300`) |
 
-## Correr el backend
+## Producción
 
 ```bash
-uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+cd frontend && npm run build   # genera frontend/out
+uvicorn backend.main:app --host 0.0.0.0 --port 8000
 ```
 
-API disponible en `http://localhost:8000`. Docs en `http://localhost:8000/docs`.
+FastAPI sirve la API y el frontend desde el mismo origen (sin CORS ni Node en el servidor). Docs en `http://localhost:8000/docs`.
 
-## Servir el frontend
+## Desarrollo
 
 ```bash
-cd frontend
-python -m http.server 8080
+uvicorn backend.main:app --reload --port 8000
+cd frontend && npm run dev      # http://localhost:3000, proxy de /api → API_URL (default http://localhost:8000)
 ```
+
+Variables opcionales del frontend: `API_URL` (proxy en dev) y `NEXT_PUBLIC_IMG_BASE` (base de las imágenes de flowsheets, default `http://10.91.1.229:88/images/`, se fija en el build).
+
+## Rutas
+
+| Ruta | Vista |
+|---|---|
+| `/` | Índice de flowsheets |
+| `/?codigo=123` | Gráficos de una variable |
+| `/historico/?codigo=123` | Gráficos desde el último dato |
+| `/flowsheet/<slug>/` | Mímico SCADA (slugs = archivos en `frontend/flowsheets/`) |
+| `/editor/` | Editor de posiciones de botones |
 
 ## Uso
-
-Abrir en el navegador pasando el código de variable por URL:
-
-```
-http://localhost:8080/?codigo=123
-```
 
 El dashboard carga automáticamente los 3 gráficos. El nombre de la variable y sus límites (min/max) se obtienen de la tabla `Variables`. El botón **Actualizar** en el header refresca los datos sin cambiar la URL.
 
@@ -106,47 +113,30 @@ curl "http://localhost:8000/api/variables/123/timeseries?days=30"
 curl "http://localhost:8000/api/variables/123/timeseries?start_date=2024-01-01T00:00:00&end_date=2024-01-31T00:00:00&downsample=true"
 ```
 
+### Último valor de varias variables (una sola query)
+```bash
+curl "http://localhost:8000/api/variables/last?codigos=13,256,257"
+# {"13": 9.52, "256": 41.2}   (las variables sin datos se omiten)
+```
+
 ### Health check
 ```bash
 curl http://localhost:8000/health
 ```
 
-## Flowsheet SCADA
+## Flowsheets SCADA
 
-`frontend/flowsheet-tk1.html` es una vista estática que replica el panel ImageIt de Grafana para el Tanque TK-1. Carga una imagen de fondo SCADA con 27 botones superpuestos que muestran el último valor de cada variable y redirigen a los gráficos históricos al hacer click.
+Cada flowsheet es un JSON en `frontend/flowsheets/<slug>.json` (imagen de fondo + botones con coordenadas en `%`), registrado en `frontend/flowsheets/index.ts`. Todos se renderizan con el mismo componente (`components/Flowsheet.tsx`), que pide los valores con una sola request a `/api/variables/last` cada 60 s. Click en un botón → gráficos de esa variable.
 
-### Acceso
-
-Con el frontend corriendo en puerto 8080:
-
-```
-http://localhost:8080/flowsheet-tk1.html
+```json
+{ "codigo": 13, "unit": "m3", "decimals": 3, "left": 84.71, "top": 74.56, "tag": "FI1087" }
 ```
 
-Los botones cargan los valores actuales automáticamente (requiere el backend corriendo). Se refrescan cada 60 segundos.
+### Agregar o mover botones
 
-### Navegar a los gráficos
-
-Click en cualquier botón → abre `index.html?codigo=XXX` con los gráficos históricos de esa variable.
-
-### Agregar o mover un botón
-
-Cada botón es un `<a>` con coordenadas en `%` (relativas al tamaño de la imagen):
-
-```html
-<a href="index.html?codigo=XXX" class="scada-btn" data-codigo="XXX" data-decimals="2"
-   style="left:50%;top:25%" title="Descripción">–</a>
-```
-
-Las coordenadas provienen del JSON del plugin ImageIt (campo `position.x` / `position.y`), que ya las exporta en porcentaje.
-
-### Modo debug
-
-Agregar la clase `debug` al `<body>` para ver los bordes de todos los botones:
-
-```html
-<body class="debug">
-```
+1. Abrir `/editor/`, elegir el flowsheet y arrastrar los botones (Supr elimina el seleccionado).
+2. **Copiar JSON** → pegarlo en `frontend/flowsheets/<slug>.json`.
+3. Para un flowsheet nuevo: crear el JSON e importarlo en `flowsheets/index.ts`. La ruta `/flowsheet/<slug>/` se genera sola en el build.
 
 ## Notas
 
