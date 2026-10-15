@@ -21,7 +21,7 @@ export type Capacidad = {
   sigma: number | null;
   cp: number | null;
   cpk: number | null;
-  labels: string[];
+  tiempos: string[];
   valores: number[];
 };
 

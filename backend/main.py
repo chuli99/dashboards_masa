@@ -402,7 +402,6 @@ def get_capacidad(
         raise HTTPException(500, f"Error al consultar la base de datos: {e}")
 
     ok = bool(sigma) and usl > lsl
-    formato = "%H:%M" if horas == 24 else "%d-%m %H:%M"
     response = {
         "lsl": lsl,
         "usl": usl,
@@ -411,7 +410,8 @@ def get_capacidad(
         "sigma": sigma,
         "cp": (usl - lsl) / (6 * sigma) if ok else None,
         "cpk": min(usl - media, media - lsl) / (3 * sigma) if ok else None,
-        "labels": [t.strftime(formato) for t, _ in serie],
+        # ISO (hora local de la DB): ordenable, permite alinear varias variables en un mismo gráfico
+        "tiempos": [t.isoformat() for t, _ in serie],
         "valores": [v for _, v in serie],
     }
     _cache_set(cache_key, response, 60 if horas == 24 else settings.cache_ttl)

@@ -113,6 +113,17 @@
   text-align: center;
   padding: 28px 20px;
 }
+.actualItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.actualItem + .actualItem {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  align-self: stretch;
+}
 .actualNombre {
   font-size: 1.125rem;
   font-weight: 700;
@@ -149,6 +160,12 @@
 }
 .tabla tbody tr + tr {
   border-top: 1px solid var(--border);
+}
+.tabla .subfila th {
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding-top: 12px;
 }
 .tabla td.ok,
 .tabla td.warn,

@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import CapacidadChart from './CapacidadChart';
+import CapacidadChart, { COLORES } from './CapacidadChart';
 import { fetcher, formatVal, type Capacidad as CapacidadData } from '@/lib/api';
-import type { Proceso, VariableCapacidad } from '@/lib/procesos';
+import type { Proceso, VariableCapacidad, Vista } from '@/lib/procesos';
 import s from './Capacidad.module.css';
 
 const VENTANAS = [
@@ -12,31 +12,39 @@ const VENTANAS = [
   { horas: 168, titulo: 'Última semana', corto: 'Semana', refresh: 30 * 60000 },
 ];
 
-type VentanaProps = { v: VariableCapacidad } & (typeof VENTANAS)[number];
+type Ventana = (typeof VENTANAS)[number];
 
-const useCapacidad = ({ v, horas, refresh }: VentanaProps) => {
+const url = (v: VariableCapacidad, horas: number) => {
   const q = new URLSearchParams({ horas: String(horas) });
   if (v.lsl != null) q.set('lsl', String(v.lsl));
   if (v.usl != null) q.set('usl', String(v.usl));
-  return useSWR<CapacidadData>(`/api/variables/${v.codigo}/capacidad?${q}`, fetcher, { refreshInterval: refresh });
+  return `/api/variables/${v.codigo}/capacidad?${q}`;
 };
+
+/** Capacidad de todas las variables de la vista en una ventana (una clave SWR: gráfico y tabla comparten caché). */
+const useCapacidades = (vista: Vista, { horas, refresh }: Ventana) =>
+  useSWR<CapacidadData[]>(
+    vista.variables.map((v) => url(v, horas)),
+    (urls: string[]) => Promise.all(urls.map((u) => fetcher<CapacidadData>(u))),
+    { refreshInterval: refresh },
+  );
 
 const fmt = (n: number | null | undefined, d = 2) => (n == null ? '–' : n.toFixed(d));
 
 // ≥ 1,33 capaz · ≥ 1 marginal · < 1 no capaz
 const nivel = (v: number | null | undefined) => (v == null ? '' : v >= 1.33 ? s.ok : v >= 1 ? s.warn : s.bad);
 
-function VentanaCard(props: VentanaProps) {
-  const { data, error } = useCapacidad(props);
+function VentanaCard({ vista, ventana }: { vista: Vista; ventana: Ventana }) {
+  const { data, error } = useCapacidades(vista, ventana);
   return (
     <div className={s.card}>
-      <h2>{props.titulo}</h2>
+      <h2>{ventana.titulo}</h2>
       {error ? (
         <div className={s.loading}>Error: {error.message}</div>
       ) : !data ? (
         <div className={s.loading}>Cargando...</div>
-      ) : data.labels.length ? (
-        <CapacidadChart data={data} />
+      ) : data.some((d) => d.tiempos.length) ? (
+        <CapacidadChart series={data.map((d, i) => ({ nombre: vista.variables[i].nombre, data: d }))} horas={ventana.horas} />
       ) : (
         <p className={s.noData}>Sin datos para el período.</p>
       )}
@@ -44,37 +52,81 @@ function VentanaCard(props: VentanaProps) {
   );
 }
 
-function FilaCapacidad(props: VentanaProps) {
-  const { data } = useCapacidad(props);
+/** Cp/Cpk por variable y ventana; con varias variables, una fila de título (con su color) por variable. */
+function TablaIndices({ vista }: { vista: Vista }) {
+  const datos = [useCapacidades(vista, VENTANAS[0]).data, useCapacidades(vista, VENTANAS[1]).data];
+  const multi = vista.variables.length > 1;
   return (
-    <tr>
-      <th>{props.corto}</th>
-      <td className={nivel(data?.cp)}>{fmt(data?.cp)}</td>
-      <td className={nivel(data?.cpk)}>{fmt(data?.cpk)}</td>
-      <td>{fmt(data?.media)}</td>
-      <td>{fmt(data?.sigma)}</td>
-    </tr>
+    <table className={s.tabla}>
+      <thead>
+        <tr>
+          <th />
+          <th>Cp</th>
+          <th>Cpk</th>
+          <th>Media</th>
+          <th>σ</th>
+        </tr>
+      </thead>
+      <tbody>
+        {vista.variables.flatMap((v, i) => [
+          multi && (
+            <tr key={v.codigo} className={s.subfila}>
+              <th colSpan={5} style={{ color: COLORES[i % COLORES.length] }}>
+                {v.nombre}
+              </th>
+            </tr>
+          ),
+          ...VENTANAS.map((w, k) => {
+            const d = datos[k]?.[i];
+            return (
+              <tr key={`${v.codigo}-${w.horas}`}>
+                <th>{w.corto}</th>
+                <td className={nivel(d?.cp)}>{fmt(d?.cp)}</td>
+                <td className={nivel(d?.cpk)}>{fmt(d?.cpk)}</td>
+                <td>{fmt(d?.media)}</td>
+                <td>{fmt(d?.sigma)}</td>
+              </tr>
+            );
+          }),
+        ])}
+      </tbody>
+    </table>
   );
 }
 
-function SeccionVariable({ v }: { v: VariableCapacidad }) {
-  // Límites efectivos (config o tabla Variables), tal como los usa el cálculo
-  const { data: cap } = useCapacidad({ v, ...VENTANAS[0] });
+function ValorActual({ v, color }: { v: VariableCapacidad; color?: string }) {
   const { data: last } = useSWR<{ valor: number }>(`/api/variables/${v.codigo}/last`, fetcher, {
     refreshInterval: 60000,
   });
-  const sinLimites = cap && cap.usl <= cap.lsl;
+  return (
+    <div className={s.actualItem}>
+      <span className={s.actualNombre} style={{ color }}>
+        {v.nombre}
+      </span>
+      <span className={s.actualValor}>{last ? formatVal(last.valor, v.decimals, v.unit) : '–'}</span>
+    </div>
+  );
+}
+
+function SeccionVista({ vista }: { vista: Vista }) {
+  // Límites efectivos (config o tabla Variables), tal como los usa el cálculo
+  const { data: caps } = useCapacidades(vista, VENTANAS[0]);
+  const multi = vista.variables.length > 1;
 
   return (
     <section className={s.seccion}>
       <div className={s.info}>
-        <span className={s.title}>{v.nombre}</span>
+        <span className={s.title}>{vista.nombre}</span>
         <span className={s.sub}>
-          Código {v.codigo}
-          {cap && ` · LSL ${cap.lsl} · USL ${cap.usl}`}
+          {vista.variables
+            .map((v, i) => {
+              const cap = caps?.[i];
+              return `${multi ? `${v.nombre}: ` : ''}Código ${v.codigo}${cap ? ` · LSL ${cap.lsl} · USL ${cap.usl}` : ''}`;
+            })
+            .join('   |   ')}
         </span>
       </div>
-      {sinLimites && (
+      {caps?.some((c) => c.usl <= c.lsl) && (
         <p className={s.aviso}>
           Sin límites de especificación válidos: definí lsl/usl en lib/procesos.ts o VALORMIN/VALORMAX en la tabla
           Variables.
@@ -84,35 +136,21 @@ function SeccionVariable({ v }: { v: VariableCapacidad }) {
       <div className={s.grid}>
         <div className={s.charts}>
           {VENTANAS.map((w) => (
-            <VentanaCard key={w.horas} v={v} {...w} />
+            <VentanaCard key={w.horas} vista={vista} ventana={w} />
           ))}
         </div>
 
         <aside className={s.side}>
           <div className={`${s.card} ${s.actual}`}>
             <h2>Valor actual</h2>
-            <span className={s.actualNombre}>{v.nombre}</span>
-            <span className={s.actualValor}>{last ? formatVal(last.valor, v.decimals, v.unit) : '–'}</span>
+            {vista.variables.map((v, i) => (
+              <ValorActual key={v.codigo} v={v} color={multi ? COLORES[i % COLORES.length] : undefined} />
+            ))}
           </div>
 
           <div className={s.card}>
             <h2>Índices</h2>
-            <table className={s.tabla}>
-              <thead>
-                <tr>
-                  <th />
-                  <th>Cp</th>
-                  <th>Cpk</th>
-                  <th>Media</th>
-                  <th>σ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {VENTANAS.map((w) => (
-                  <FilaCapacidad key={w.horas} v={v} {...w} />
-                ))}
-              </tbody>
-            </table>
+            <TablaIndices vista={vista} />
             <p className={s.leyenda}>
               <span className={s.ok}>≥ 1,33 capaz</span> · <span className={s.warn}>1 – 1,33 marginal</span> ·{' '}
               <span className={s.bad}>&lt; 1 no capaz</span>
@@ -125,31 +163,31 @@ function SeccionVariable({ v }: { v: VariableCapacidad }) {
 }
 
 export default function Capacidad({ proceso }: { proceso: Proceso }) {
-  const [codigo, setCodigo] = useState(proceso.variables[0]?.codigo);
-  const actual = proceso.variables.find((v) => v.codigo === codigo);
+  const [indice, setIndice] = useState(0);
+  const actual = proceso.vistas[indice];
 
   return (
     <div className={s.page}>
       <div className={s.barra}>
         <h1 className={s.proceso}>Capacidad de proceso · {proceso.titulo}</h1>
-        {proceso.variables.length > 1 && (
+        {proceso.vistas.length > 1 && (
           <div className={s.selector} role="tablist">
-            {proceso.variables.map((v) => (
+            {proceso.vistas.map((vista, i) => (
               <button
-                key={v.codigo}
+                key={vista.nombre}
                 role="tab"
-                aria-selected={v.codigo === codigo}
-                className={v.codigo === codigo ? s.activo : undefined}
-                onClick={() => setCodigo(v.codigo)}
+                aria-selected={i === indice}
+                className={i === indice ? s.activo : undefined}
+                onClick={() => setIndice(i)}
               >
-                {v.nombre}
+                {vista.nombre}
               </button>
             ))}
           </div>
         )}
       </div>
       {actual ? (
-        <SeccionVariable key={actual.codigo} v={actual} />
+        <SeccionVista key={actual.nombre} vista={actual} />
       ) : (
         <p className={s.noData}>Todavía no hay variables definidas para {proceso.titulo}.</p>
       )}
