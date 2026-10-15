@@ -15,14 +15,45 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
+.barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Control segmentado para alternar entre las variables del proceso */
+.selector {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--muted);
+  border-radius: var(--radius-lg);
+}
+.selector button {
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.selector button:hover {
+  color: var(--foreground);
+}
+.selector .activo {
+  background: var(--background);
+  color: var(--foreground);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
 .seccion {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-.seccion + .seccion {
-  border-top: 1px solid var(--border);
-  padding-top: 20px;
 }
 .info {
   display: flex;
@@ -74,37 +105,25 @@
   margin-bottom: 14px;
 }
 
-/* Mismo look que el valor sobre el mímico del flowsheet */
-.tag {
+/* Igual que la tarjeta "Valor actual" de la vista de una variable */
+.actual {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  background: #111;
-  border-radius: var(--radius-xl);
-  padding: 28px 20px;
   text-align: center;
+  padding: 28px 20px;
 }
-.tagNombre {
-  font-family: var(--font-mono), monospace;
-  font-size: 0.85rem;
-  color: #94a3b8;
+.actualNombre {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 16px;
 }
-.tagValor {
-  font-family: var(--font-mono), monospace;
-  font-size: 2.75rem;
-  font-weight: 600;
+.actualValor {
+  font-size: 3rem;
+  font-weight: 700;
   line-height: 1;
-  color: #96d98d;
-  background: rgba(0, 0, 0, 0.75);
-  outline: 1px solid #96d98d;
-  padding: 8px 14px;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
-}
-.tagDesc {
-  font-size: 0.8rem;
-  color: #94a3b8;
 }
 
 .tabla {

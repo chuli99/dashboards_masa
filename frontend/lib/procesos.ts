@@ -5,7 +5,6 @@
 export type VariableCapacidad = {
   codigo: number;
   nombre: string;
-  tag: string;
   unit: string;
   decimals: number;
   lsl?: number;
@@ -18,7 +17,10 @@ export const PROCESOS: Record<string, Proceso> = {
   adsorcion: { titulo: 'Adsorción', variables: [] },
   elucion: {
     titulo: 'Elución',
-    variables: [{ codigo: 272, nombre: 'Caudal TK7', tag: 'FI1067', unit: 'm3', decimals: 2 }],
+    variables: [
+      { codigo: 272, nombre: 'Caudal TK7', unit: 'm3', decimals: 2 },
+      { codigo: 269, nombre: 'pH TK7', unit: 'ph', decimals: 2 },
+    ],
   },
   electrodeposicion: { titulo: 'Electrodeposición', variables: [] },
 };

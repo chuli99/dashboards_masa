@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import useSWR from 'swr';
 import CapacidadChart from './CapacidadChart';
 import { fetcher, formatVal, type Capacidad as CapacidadData } from '@/lib/api';
@@ -69,7 +70,7 @@ function SeccionVariable({ v }: { v: VariableCapacidad }) {
       <div className={s.info}>
         <span className={s.title}>{v.nombre}</span>
         <span className={s.sub}>
-          {v.tag} · Código {v.codigo}
+          Código {v.codigo}
           {cap && ` · LSL ${cap.lsl} · USL ${cap.usl}`}
         </span>
       </div>
@@ -88,10 +89,10 @@ function SeccionVariable({ v }: { v: VariableCapacidad }) {
         </div>
 
         <aside className={s.side}>
-          <div className={s.tag}>
-            <span className={s.tagNombre}>{v.tag}</span>
-            <span className={s.tagValor}>{last ? formatVal(last.valor, v.decimals, v.unit) : '–'}</span>
-            <span className={s.tagDesc}>{v.nombre}</span>
+          <div className={`${s.card} ${s.actual}`}>
+            <h2>Valor actual</h2>
+            <span className={s.actualNombre}>{v.nombre}</span>
+            <span className={s.actualValor}>{last ? formatVal(last.valor, v.decimals, v.unit) : '–'}</span>
           </div>
 
           <div className={s.card}>
@@ -124,11 +125,31 @@ function SeccionVariable({ v }: { v: VariableCapacidad }) {
 }
 
 export default function Capacidad({ proceso }: { proceso: Proceso }) {
+  const [codigo, setCodigo] = useState(proceso.variables[0]?.codigo);
+  const actual = proceso.variables.find((v) => v.codigo === codigo);
+
   return (
     <div className={s.page}>
-      <h1 className={s.proceso}>Capacidad de proceso · {proceso.titulo}</h1>
-      {proceso.variables.length ? (
-        proceso.variables.map((v) => <SeccionVariable key={v.codigo} v={v} />)
+      <div className={s.barra}>
+        <h1 className={s.proceso}>Capacidad de proceso · {proceso.titulo}</h1>
+        {proceso.variables.length > 1 && (
+          <div className={s.selector} role="tablist">
+            {proceso.variables.map((v) => (
+              <button
+                key={v.codigo}
+                role="tab"
+                aria-selected={v.codigo === codigo}
+                className={v.codigo === codigo ? s.activo : undefined}
+                onClick={() => setCodigo(v.codigo)}
+              >
+                {v.nombre}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      {actual ? (
+        <SeccionVariable key={actual.codigo} v={actual} />
       ) : (
         <p className={s.noData}>Todavía no hay variables definidas para {proceso.titulo}.</p>
       )}
