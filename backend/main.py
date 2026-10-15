@@ -2,11 +2,12 @@ import logging
 import time
 import threading
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import text
+from fastapi.staticfiles import StaticFiles
+from sqlalchemy import bindparam, text
 
 from .config import settings
 from .database import engine
@@ -15,20 +16,6 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="PLC Dashboard API")
-
-@app.on_event("startup")
-def on_startup():
-    from pathlib import Path
-    api_url = f"http://{settings.sv_ip}:{settings.sv_port}"
-    Path("frontend/config.js").write_text(f'window.API_URL = "{api_url}";\n')
-    logger.info(f"API_URL={api_url}")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins,
-    allow_methods=["GET"],
-    allow_headers=["*"],
-)
 
 # Cache en memoria thread-safe
 _cache: dict = {}
@@ -176,6 +163,35 @@ WHERE PN._VARIABLE = :codigo
 GROUP BY DATEADD(MINUTE, DATEDIFF(MINUTE, 0, PN._TIMESTAMP), 0)
 ORDER BY Fecha ASC
 """
+
+
+_QUERY_LAST_MANY = text("""
+SELECT _VARIABLE, _VALOR FROM (
+  SELECT _VARIABLE, _VALOR, ROW_NUMBER() OVER (PARTITION BY _VARIABLE ORDER BY _TIMESTAMP DESC) AS rn
+  FROM PLCNarrow WHERE _VARIABLE IN :codigos
+) t WHERE rn = 1
+""").bindparams(bindparam("codigos", expanding=True))
+
+
+@app.get("/api/variables/last")
+def get_last_values(codigos: str = Query(..., pattern=r"^\d+(,\d+)*$")):
+    """Último valor de varias variables en una sola query: {codigo: valor}."""
+    lista = sorted({int(c) for c in codigos.split(",")})
+    cache_key = f"lastmany:{lista}"
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        with engine.connect() as conn:
+            rows = conn.execute(_QUERY_LAST_MANY, {"codigos": lista}).fetchall()
+    except Exception as e:
+        logger.error(f"Error last values codigos={codigos}: {e}")
+        raise HTTPException(500, f"Error al consultar la base de datos: {e}")
+
+    response = {codigo: float(valor) for codigo, valor in rows if valor is not None}
+    _cache_set(cache_key, response, 30)
+    return response
 
 
 @app.get("/api/variables/{codigo}")
@@ -335,3 +351,9 @@ def get_stats(
     response = {"labels": labels, "bajo": bajo, "medio": medio, "alto": alto}
     _cache_set(cache_key, response, settings.cache_ttl)
     return response
+
+
+# Frontend Next.js exportado (npm run build en frontend/). Montado al final para no tapar /api.
+_FRONTEND = Path(__file__).resolve().parent.parent / "frontend" / "out"
+if _FRONTEND.is_dir():
+    app.mount("/", StaticFiles(directory=_FRONTEND, html=True), name="frontend")

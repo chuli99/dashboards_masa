@@ -5,6 +5,10 @@ __pycache__/
 *.pyo
 .DS_Store
 .claude/
-frontend/config.js
+node_modules/
+frontend/.next/
+frontend/out/
+frontend/next-env.d.ts
+*.tsbuildinfo
 flowsheets_grafana/
 CLAUDE.md
