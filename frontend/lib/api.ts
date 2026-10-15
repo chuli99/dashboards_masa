@@ -13,6 +13,18 @@ export type Stats = {
   alto: (number | null)[];
 };
 
+export type Capacidad = {
+  lsl: number;
+  usl: number;
+  n: number;
+  media: number | null;
+  sigma: number | null;
+  cp: number | null;
+  cpk: number | null;
+  labels: string[];
+  valores: number[];
+};
+
 export async function fetcher<T>(url: string): Promise<T> {
   const res = await fetch(url);
   if (!res.ok) {

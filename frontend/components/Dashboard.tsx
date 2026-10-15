@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import useSWR, { useSWRConfig } from 'swr';
@@ -75,6 +76,11 @@ export default function Dashboard({ historico = false }: { historico?: boolean }
         </div>
         <div className={s.headerRight}>
           {historico && <span className={s.badge}>Desde último dato</span>}
+          {codigo && (
+            <Link href={`/capacidad/?codigo=${codigo}`} className={s.link}>
+              Ver Cp/Cpk
+            </Link>
+          )}
           <button onClick={refresh} disabled={!variable || refreshing}>
             Actualizar
           </button>

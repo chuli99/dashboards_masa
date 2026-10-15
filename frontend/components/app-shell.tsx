@@ -3,6 +3,7 @@
 import { Collapsible } from '@base-ui/react/collapsible';
 import {
   ArrowRight01Icon,
+  ChartAverageIcon,
   FactoryIcon,
   Home01Icon,
   Moon02Icon,
@@ -177,6 +178,12 @@ function AppSidebar() {
               icono={FactoryIcon}
               items={Object.entries(FLOWSHEETS).map(([slug, fs]) => ({ href: `/flowsheet/${slug}/`, titulo: fs.title }))}
             />
+          </SidebarMenu>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Supervisión</SidebarGroupLabel>
+          <SidebarMenu>
+            <Item href="/capacidad/" titulo="Capacidad Cp/Cpk" icono={ChartAverageIcon} />
           </SidebarMenu>
         </SidebarGroup>
         <SidebarGroup>

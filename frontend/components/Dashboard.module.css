@@ -46,6 +46,15 @@
   letter-spacing: 0.06em;
 }
 
+.link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--primary);
+}
+.link:hover {
+  text-decoration: underline;
+}
+
 .headerRight button {
   background: var(--primary);
   color: var(--primary-foreground);

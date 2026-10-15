@@ -353,6 +353,64 @@ def get_stats(
     return response
 
 
+# Capacidad de proceso: ventana en horas → minutos por punto del gráfico (24h: 5 min, 7d: 30 min)
+_CAPACIDAD_BUCKET = {24: 5, 168: 30}
+
+_QUERY_CAPACIDAD_STATS = text("""
+SELECT COUNT(_VALOR), AVG(CAST(_VALOR AS FLOAT)), STDEV(_VALOR)
+FROM PLCNarrow
+WHERE _VARIABLE = :codigo AND _TIMESTAMP >= DATEADD(HOUR, -:horas, GETDATE())
+""")
+
+_QUERY_CAPACIDAD_SERIE = """
+SELECT t, AVG(CAST(v AS FLOAT)) FROM (
+  SELECT DATEADD(MINUTE, DATEDIFF(MINUTE, 0, _TIMESTAMP) / {m} * {m}, 0) AS t, _VALOR AS v
+  FROM PLCNarrow
+  WHERE _VARIABLE = :codigo AND _TIMESTAMP >= DATEADD(HOUR, -:horas, GETDATE())
+) x
+GROUP BY t
+ORDER BY t
+"""
+
+
+@app.get("/api/variables/{codigo}/capacidad")
+def get_capacidad(codigo: int, horas: int = Query(24)):
+    """Cp/Cpk de la ventana usando VALORMIN/VALORMAX como LSL/USL y σ global de los datos crudos."""
+    if horas not in _CAPACIDAD_BUCKET:
+        raise HTTPException(422, f"horas debe ser uno de {list(_CAPACIDAD_BUCKET)}")
+    cache_key = f"cap:{codigo}:{horas}"
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached
+
+    variable = get_variable(codigo)
+    lsl, usl = variable["valormin"], variable["valormax"]
+    params = {"codigo": codigo, "horas": horas}
+    try:
+        with engine.connect() as conn:
+            n, media, sigma = conn.execute(_QUERY_CAPACIDAD_STATS, params).fetchone()
+            serie = conn.execute(text(_QUERY_CAPACIDAD_SERIE.format(m=_CAPACIDAD_BUCKET[horas])), params).fetchall()
+    except Exception as e:
+        logger.error(f"Error capacidad codigo={codigo} horas={horas}: {e}")
+        raise HTTPException(500, f"Error al consultar la base de datos: {e}")
+
+    ok = bool(sigma) and usl > lsl
+    formato = "%H:%M" if horas == 24 else "%d-%m %H:%M"
+    response = {
+        "lsl": lsl,
+        "usl": usl,
+        "n": n,
+        "media": media,
+        "sigma": sigma,
+        "cp": (usl - lsl) / (6 * sigma) if ok else None,
+        "cpk": min(usl - media, media - lsl) / (3 * sigma) if ok else None,
+        "labels": [t.strftime(formato) for t, _ in serie],
+        "valores": [v for _, v in serie],
+    }
+    _cache_set(cache_key, response, 60 if horas == 24 else settings.cache_ttl)
+    return response
+
+
 # Frontend Next.js exportado (npm run build en frontend/). Montado al final para no tapar /api.
 _FRONTEND = Path(__file__).resolve().parent.parent / "frontend" / "out"
 if _FRONTEND.is_dir():

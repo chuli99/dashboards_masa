@@ -1,34 +1,14 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import {
-  BarController,
-  BarElement,
-  CategoryScale,
-  Chart,
-  Legend,
-  LinearScale,
-  LineController,
-  LineElement,
-  PointElement,
-  Tooltip,
-} from 'chart.js';
 import type { Stats } from '@/lib/api';
-
-Chart.register(BarController, BarElement, CategoryScale, Legend, LinearScale, LineController, LineElement, PointElement, Tooltip);
+import { AXIS, Chart, LEGEND_LABELS, TOOLTIP } from '@/lib/chart';
 
 const SERIES = [
   { key: 'bajo', label: 'Bajo', color: '#ef4444' },
   { key: 'medio', label: 'Medio', color: '#22c55e' },
   { key: 'alto', label: 'Alto', color: '#f97316' },
 ] as const;
-
-const AXIS = {
-  // Grises translúcidos: se leen igual en tema claro y oscuro
-  grid: { color: 'rgba(148, 163, 184, 0.15)' },
-  ticks: { font: { size: 11 }, color: '#94a3b8' },
-  border: { color: 'rgba(148, 163, 184, 0.3)' },
-};
 
 export default function StatsChart({ data, line }: { data: Stats; line: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -68,18 +48,12 @@ export default function StatsChart({ data, line }: { data: Stats; line: boolean 
         plugins: {
           legend: {
             position: 'top',
-            labels: { boxWidth: line ? 16 : 12, font: { size: 11 }, color: '#94a3b8', usePointStyle: line },
+            labels: { ...LEGEND_LABELS, boxWidth: line ? 16 : 12, usePointStyle: line },
           },
           tooltip: {
+            ...TOOLTIP,
             filter: (item) => item.raw != null,
             callbacks: { label: (ctx) => `${ctx.dataset.label}: ${(ctx.raw as number).toFixed(4)}` },
-            backgroundColor: '#0f172a',
-            titleColor: '#94a3b8',
-            bodyColor: '#f1f5f9',
-            padding: 10,
-            cornerRadius: 6,
-            boxWidth: 8,
-            boxHeight: 8,
           },
         },
         scales: { x: AXIS, y: AXIS },
