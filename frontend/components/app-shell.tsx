@@ -206,15 +206,20 @@ function AppSidebar() {
   );
 }
 
+/** Ícono y texto por CSS (dark:): el HTML exportado no conoce el tema, así no hay mismatch de hidratación. */
 function BotonTema() {
   const { resolvedTheme, setTheme } = useTheme();
-  const oscuro = resolvedTheme === 'dark';
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <SidebarMenuButton tooltip="Cambiar tema (D)" onClick={() => setTheme(oscuro ? 'light' : 'dark')}>
-          <HugeiconsIcon icon={oscuro ? Sun03Icon : Moon02Icon} strokeWidth={2} />
-          <span>{oscuro ? 'Tema claro' : 'Tema oscuro'}</span>
+        <SidebarMenuButton
+          tooltip="Cambiar tema (D)"
+          onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+        >
+          <HugeiconsIcon icon={Moon02Icon} strokeWidth={2} className="dark:hidden" />
+          <HugeiconsIcon icon={Sun03Icon} strokeWidth={2} className="hidden dark:block" />
+          <span className="dark:hidden">Tema oscuro</span>
+          <span className="hidden dark:inline">Tema claro</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>
