@@ -16,7 +16,7 @@ sudo apt-get update
 ACCEPT_EULA=Y sudo apt-get install -y msodbcsql17 unixodbc-dev
 ```
 
-### Python 3.11+, Node 20+ y pnpm
+### Python 3.12+, Node 20+ y pnpm
 
 ## Instalación
 
@@ -45,8 +45,8 @@ Editar `.env`:
 ## Producción
 
 ```bash
-cd frontend && pnpm build      # genera frontend/out
-uvicorn backend.main:app --host 0.0.0.0 --port 8000
+cd frontend && pnpm build      # genera frontend/out (obligatorio: fastapi run falla si no existe)
+fastapi run --port 8000        # desde la raíz; el entrypoint está en pyproject.toml
 ```
 
 FastAPI sirve la API y el frontend desde el mismo origen (sin CORS ni Node en el servidor). Docs en `http://localhost:8000/docs`.
@@ -54,9 +54,21 @@ FastAPI sirve la API y el frontend desde el mismo origen (sin CORS ni Node en el
 ## Desarrollo
 
 ```bash
-uvicorn backend.main:app --reload --port 8000
+fastapi dev --port 8000        # recarga al guardar; no exige frontend/out
 cd frontend && pnpm dev        # http://localhost:3000 (o 3001 si Grafana ocupa el 3000), proxy de /api → API_URL (default http://localhost:8000)
 ```
+
+### Estructura del backend
+
+| Archivo | Responsabilidad |
+|---|---|
+| `backend/main.py` | Crea la app, incluye routers, maneja errores de DB y sirve `frontend/out` |
+| `backend/routers/` | Endpoints (`variables.py`, `health.py`): validan parámetros y aplican cache |
+| `backend/repositorio.py` | Ejecuta las queries y arma los modelos |
+| `backend/queries.py` | Todo el SQL |
+| `backend/schemas.py` | Modelos Pydantic de las respuestas |
+| `backend/database.py` | Engine y dependencia `ConnDep` (una conexión del pool por request) |
+| `backend/cache.py` | Cache en memoria con TTL |
 
 Variables opcionales del frontend: `API_URL` (proxy en dev) y `NEXT_PUBLIC_IMG_BASE` (base de las imágenes de flowsheets, default `http://10.91.1.229:88/images/`, se fija en el build).
 
