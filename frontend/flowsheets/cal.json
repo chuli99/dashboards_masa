@@ -1,0 +1,21 @@
+{
+  "title": "Planta de Cal Hidróxido",
+  "image": "Plantadecalhidroxido.png",
+  "buttons": [
+    { "codigo": 284, "unit": "bool", "decimals": 2, "left": 27.42, "top": 36.48, "tag": "HV-027" },
+    { "codigo": 300, "unit": "bool", "decimals": 2, "left": 4.43, "top": 58.12, "tag": "620-PP-032A" },
+    { "codigo": 267, "unit": "m3", "decimals": 2, "left": 15.5, "top": 62.56, "tag": "LI1068" },
+    { "codigo": 299, "unit": "m3", "decimals": 2, "left": 35.5, "top": 66.03, "tag": "LI1097" },
+    { "codigo": 301, "unit": "bool", "decimals": 2, "left": 14.56, "top": 86.11, "tag": "620-PP-037A" },
+    { "codigo": 258, "unit": "m3", "decimals": 2, "left": 40.13, "top": 85.32, "tag": "FIFE002" },
+    { "codigo": 303, "unit": "bool", "decimals": 2, "left": 50.13, "top": 63.46, "tag": "620-AG-012" },
+    { "codigo": 98, "unit": "m3", "decimals": 2, "left": 61.14, "top": 62.21, "tag": "620LIT1302" },
+    { "codigo": 118, "unit": "ph", "decimals": 2, "left": 61.3, "top": 68.16, "tag": "620AIT1301" },
+    { "codigo": 79, "unit": "m3", "decimals": 2, "left": 69.83, "top": 69.64, "tag": "620FIT1305" },
+    { "codigo": 307, "unit": "m3", "decimals": 2, "left": 91.37, "top": 67.03, "tag": "FIFE003" },
+    { "codigo": 213, "unit": "m3", "decimals": 2, "left": 77.18, "top": 84.98, "tag": "LI1011" },
+    { "codigo": 244, "unit": "m3", "decimals": 2, "left": 82.37, "top": 84.98, "tag": "LI1011C" },
+    { "codigo": 116, "unit": "ph", "decimals": 2, "left": 77.18, "top": 92.32, "tag": "AI1016" },
+    { "codigo": 117, "unit": "ph", "decimals": 2, "left": 82.61, "top": 92.17, "tag": "AI1016C" }
+  ]
+}

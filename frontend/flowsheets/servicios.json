@@ -1,0 +1,13 @@
+{
+  "title": "Servicios Planta Agua Procesos y Contraincendio",
+  "image": "ServiciosPlantaAguaProcesosyContraincendio.png",
+  "buttons": [
+    { "codigo": 91, "unit": "pct", "decimals": 2, "left": 65.45, "top": 9.45, "tag": "LI951" },
+    { "codigo": 80, "unit": "m3", "decimals": 2, "left": 76.69, "top": 4.4, "tag": "FI905" },
+    { "codigo": 82, "unit": "m3", "decimals": 2, "left": 90.83, "top": 1.84, "tag": "FI905C" },
+    { "codigo": 186, "unit": "bool", "decimals": 2, "left": 27.32, "top": 9.86, "tag": "830-PP-067" },
+    { "codigo": 187, "unit": "bool", "decimals": 2, "left": 27.47, "top": 21, "tag": "830-PP-068" },
+    { "codigo": 188, "unit": "bool", "decimals": 2, "left": 27.43, "top": 32.37, "tag": "830-PP-069" },
+    { "codigo": 189, "unit": "m3", "decimals": 2, "left": 38.95, "top": 10.33, "tag": "FI954" }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "title": "Tanque TK-1",
+  "image": "TanqueTK1.PNG",
+  "buttons": [
+    { "codigo": 62, "unit": "m3", "decimals": 2, "left": 81.82, "top": 9.69, "tag": "FQ 902" },
+    { "codigo": 75, "unit": "m3", "decimals": 2, "left": 81.71, "top": 15.66, "tag": "FI902" },
+    { "codigo": 93, "unit": "pct", "decimals": 0, "left": 70.11, "top": 18.03, "tag": "LI 883C" },
+    { "codigo": 54, "unit": "m3", "decimals": 2, "left": 48.58, "top": 17.38, "tag": "FI881" },
+    { "codigo": 95, "unit": "pct", "decimals": 2, "left": 59.72, "top": 19.64, "tag": "LI 883B" },
+    { "codigo": 59, "unit": "m3", "decimals": 2, "left": 48.32, "top": 21.76, "tag": "FQ881" },
+    { "codigo": 56, "unit": "m3", "decimals": 0, "left": 9.2, "top": 33.36, "tag": "FQ880" },
+    { "codigo": 54, "unit": "m3", "decimals": 2, "left": 8.72, "top": 38.59, "tag": "FI880" },
+    { "codigo": 4, "unit": "bar", "decimals": 2, "left": 16.79, "top": 39.04, "tag": "PI880" },
+    { "codigo": 127, "unit": "bool", "decimals": 0, "left": 17.95, "top": 48.25, "tag": "610-PP-024" },
+    { "codigo": 137, "unit": "bool", "decimals": 0, "left": 30.67, "top": 47.57, "tag": "610-PP-012" },
+    { "codigo": 138, "unit": "bool", "decimals": 0, "left": 30.89, "top": 59.05, "tag": "610-PP-013" },
+    { "codigo": 139, "unit": "bool", "decimals": 0, "left": 30.15, "top": 72.28, "tag": "610-PP-022" },
+    { "codigo": 140, "unit": "bool", "decimals": 0, "left": 30.2, "top": 84.62, "tag": "610-PP-023" },
+    { "codigo": 100, "unit": "pct", "decimals": 2, "left": 59.63, "top": 53.71, "tag": "LI1120" },
+    { "codigo": 99, "unit": "pct", "decimals": 2, "left": 59.11, "top": 61.05, "tag": "TK 15C LI 1120C" },
+    { "codigo": 244, "unit": "pct", "decimals": 2, "left": 94.15, "top": 46.45, "tag": "LI1011C" },
+    { "codigo": 8, "unit": "m3", "decimals": 2, "left": 84.05, "top": 59.25, "tag": "FI885" },
+    { "codigo": 108, "unit": "m3", "decimals": 2, "left": 95.98, "top": 58.91, "tag": "FI10011A" },
+    { "codigo": 9, "unit": "m3", "decimals": 2, "left": 84.01, "top": 63.54, "tag": "FQ885" },
+    { "codigo": 109, "unit": "m3", "decimals": 2, "left": 96.21, "top": 63.9, "tag": "FI10011B" },
+    { "codigo": 51, "unit": "m3", "decimals": 2, "left": 96.64, "top": 69.91, "tag": "FI874" },
+    { "codigo": 53, "unit": "m3", "decimals": 2, "left": 96.57, "top": 75.52, "tag": "FQ874" },
+    { "codigo": 1, "unit": "m3", "decimals": 2, "left": 15.03, "top": 68.16, "tag": "FI904" },
+    { "codigo": 3, "unit": "bar", "decimals": 2, "left": 20.6, "top": 68.06, "tag": "PI903" },
+    { "codigo": 101, "unit": "pct", "decimals": 2, "left": 41.42, "top": 79.24, "tag": "LI893" },
+    { "codigo": 67, "unit": "pct", "decimals": 0, "left": 95.13, "top": 84.05, "tag": "LI873" }
+  ]
+}

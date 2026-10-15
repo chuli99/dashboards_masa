@@ -1,0 +1,18 @@
+{
+  "title": "ADR a Desadsorción Lavado Ácido",
+  "image": "AdraDesadsorcionLavadoAcido.png",
+  "buttons": [
+    { "codigo": 310, "unit": "ph", "decimals": 2, "left": 69.14, "top": 20.41, "tag": "AI1031" },
+    { "codigo": 311, "unit": "ph", "decimals": 2, "left": 60.89, "top": 60.96, "tag": "AI1038" },
+    { "codigo": 312, "unit": "pct", "decimals": 2, "left": 42.65, "top": 64.6, "tag": "LI1036" },
+    { "codigo": 313, "unit": "pct", "decimals": 2, "left": 86.63, "top": 66.94, "tag": "LI1039" },
+    { "codigo": 314, "unit": "", "decimals": 2, "left": 37.91, "top": 90.29, "tag": "PH-PPS-002" },
+    { "codigo": 315, "unit": "bool", "decimals": 2, "left": 17.97, "top": 40.86, "tag": "620-PP-029" },
+    { "codigo": 316, "unit": "bool", "decimals": 2, "left": 82.71, "top": 41.66, "tag": "620-PP-030" },
+    { "codigo": 317, "unit": "bool", "decimals": 2, "left": 35.23, "top": 61.88, "tag": "620-AG-004" },
+    { "codigo": 318, "unit": "bool", "decimals": 2, "left": 74.45, "top": 61.88, "tag": "620-AG-005" },
+    { "codigo": 322, "unit": "bool", "decimals": 2, "left": 94.84, "top": 76.1, "tag": "630-EW-001" },
+    { "codigo": 323, "unit": "bool", "decimals": 2, "left": 94.92, "top": 85.61, "tag": "630-EW-002" },
+    { "codigo": 324, "unit": "bool", "decimals": 2, "left": 24.52, "top": 90.32, "tag": "620-PS-002" }
+  ]
+}

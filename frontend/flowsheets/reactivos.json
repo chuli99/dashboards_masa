@@ -1,0 +1,28 @@
+{
+  "title": "ADR Reactivos Ampliación Preparación Hidróxido",
+  "image": "ADRReactivosAmpliacionPreparacionHidroxido.png",
+  "buttons": [
+    { "codigo": 284, "unit": "bool", "decimals": 2, "left": 20.49, "top": 5.64, "tag": "HV027" },
+    { "codigo": 267, "unit": "pct", "decimals": 2, "left": 42.87, "top": 26.2, "tag": "LI1068" },
+    { "codigo": 299, "unit": "pct", "decimals": 2, "left": 62.82, "top": 31.48, "tag": "LI1097" },
+    { "codigo": 300, "unit": "bool", "decimals": 2, "left": 36.25, "top": 22.59, "tag": "620-PP-032A" },
+    { "codigo": 301, "unit": "bool", "decimals": 2, "left": 44.42, "top": 52.97, "tag": "620-PP-037A" },
+    { "codigo": 258, "unit": "m3", "decimals": 2, "left": 63.91, "top": 48.1, "tag": "FIFE002" },
+    { "codigo": 98, "unit": "pct", "decimals": 2, "left": 82.71, "top": 25.72, "tag": "620LIT1302" },
+    { "codigo": 118, "unit": "ph", "decimals": 2, "left": 82.58, "top": 31.29, "tag": "620AIT1301" },
+    { "codigo": 79, "unit": "m3", "decimals": 2, "left": 89.72, "top": 32.85, "tag": "620FIT1305" },
+    { "codigo": 307, "unit": "m3", "decimals": 2, "left": 81.95, "top": 71.16, "tag": "FIFE003" },
+    { "codigo": 213, "unit": "pct", "decimals": 2, "left": 88.58, "top": 72.27, "tag": "LI1011" },
+    { "codigo": 244, "unit": "pct", "decimals": 2, "left": 93.53, "top": 72.28, "tag": "LI1011C" },
+    { "codigo": 116, "unit": "ph", "decimals": 2, "left": 88.98, "top": 80.13, "tag": "AI1016" },
+    { "codigo": 117, "unit": "ph", "decimals": 2, "left": 93.95, "top": 79.62, "tag": "AI1016C" },
+    { "codigo": 134, "unit": "pct", "decimals": 2, "left": 36.91, "top": 73.04, "tag": "FIT1220" },
+    { "codigo": 203, "unit": "pct", "decimals": 2, "left": 21.55, "top": 62.15, "tag": "LI1203" },
+    { "codigo": 343, "unit": "bool", "decimals": 2, "left": 44.17, "top": 63.42, "tag": "640-AG-001" },
+    { "codigo": 344, "unit": "bool", "decimals": 2, "left": 27.24, "top": 80.38, "tag": "640-PP-060" },
+    { "codigo": 264, "unit": "bool", "decimals": 2, "left": 48.29, "top": 62.41, "tag": "HV-1063" },
+    { "codigo": 346, "unit": "bool", "decimals": 2, "left": 47.87, "top": 79.11, "tag": "HV-1208" },
+    { "codigo": 347, "unit": "bool", "decimals": 2, "left": 48.15, "top": 91.27, "tag": "HV-1209" },
+    { "codigo": 348, "unit": "bool", "decimals": 2, "left": 0.21, "top": 86.96, "tag": "620-PS-007" }
+  ]
+}

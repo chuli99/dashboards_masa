@@ -1,0 +1,18 @@
+{
+  "title": "Tanque TK1 Solución Rica",
+  "image": "TanqueTK1NSolucionRica.png",
+  "buttons": [
+    { "codigo": 3, "unit": "m3", "decimals": 2, "left": 26.72, "top": 19.2, "tag": "PI903" },
+    { "codigo": 1, "unit": "m3", "decimals": 2, "left": 39.91, "top": 19.48, "tag": "FI904" },
+    { "codigo": 64, "unit": "m3", "decimals": 2, "left": 40.21, "top": 13.9, "tag": "FQ904" },
+    { "codigo": 93, "unit": "pct", "decimals": 2, "left": 2.63, "top": 51.34, "tag": "LI883C" },
+    { "codigo": 75, "unit": "m3", "decimals": 2, "left": 17.3, "top": 61.19, "tag": "FI902" },
+    { "codigo": 63, "unit": "m3", "decimals": 2, "left": 17.31, "top": 55.88, "tag": "FQ902" },
+    { "codigo": 143, "unit": "m3", "decimals": 2, "left": 5.08, "top": 77.84, "tag": "FI901" },
+    { "codigo": 141, "unit": "bar", "decimals": 4, "left": 57.13, "top": 17.98, "tag": "PI903B" },
+    { "codigo": 137, "unit": "bool", "decimals": 2, "left": 21.6, "top": 5.92, "tag": "610-PP-012" },
+    { "codigo": 138, "unit": "bool", "decimals": 2, "left": 21.38, "top": 15.89, "tag": "610-PP-013" },
+    { "codigo": 139, "unit": "bool", "decimals": 2, "left": 21.38, "top": 26.57, "tag": "610-PP-022" },
+    { "codigo": 140, "unit": "bool", "decimals": 2, "left": 21.38, "top": 37.7, "tag": "610-PP-023" }
+  ]
+}

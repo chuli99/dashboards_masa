@@ -1,0 +1,10 @@
+{
+  "title": "Preparación de NaOH",
+  "image": "PreparacióndeNaOH_oficial_2.png",
+  "buttons": [
+    { "codigo": 134, "unit": "m3", "decimals": 2, "left": 82.27, "top": 16.41, "tag": "FIT1220" },
+    { "codigo": 133, "unit": "m3", "decimals": 2, "left": 56.13, "top": 19.61, "tag": "LI1203" },
+    { "codigo": 135, "unit": "pct", "decimals": 2, "left": 69.69, "top": 67.63, "tag": "SC1210" },
+    { "codigo": 136, "unit": "pct", "decimals": 2, "left": 69.82, "top": 80.63, "tag": "SC1211" }
+  ]
+}

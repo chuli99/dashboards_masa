@@ -1,0 +1,26 @@
+{
+  "title": "ADR Reactivos Sistema Preparación Cianuro",
+  "image": "ADRReactivosSistemaPreparaciónCianuro.png",
+  "buttons": [
+    { "codigo": 3, "unit": "pct", "decimals": 2, "left": 43.05, "top": 20.82, "tag": "LI1172" },
+    { "codigo": 1, "unit": "pct", "decimals": 2, "left": 70.65, "top": 11.13, "tag": "LI1174" },
+    { "codigo": 64, "unit": "m3", "decimals": 2, "left": 74.88, "top": 25.97, "tag": "QCNTK2" },
+    { "codigo": 93, "unit": "m3", "decimals": 2, "left": 74.63, "top": 19.32, "tag": "QCNTK2C" },
+    { "codigo": 169, "unit": "ph", "decimals": 2, "left": 20.19, "top": 22.62, "tag": "AI1171" },
+    { "codigo": 182, "unit": "m3", "decimals": 2, "left": 83.15, "top": 69.03, "tag": "FI1218" },
+    { "codigo": 177, "unit": "m3", "decimals": 2, "left": 31.86, "top": 64.62, "tag": "LI1191" },
+    { "codigo": 181, "unit": "m3", "decimals": 2, "left": 60.26, "top": 55.8, "tag": "LI1216" },
+    { "codigo": 184, "unit": "min", "decimals": 2, "left": 72.79, "top": 71.35, "tag": "PP062" },
+    { "codigo": 178, "unit": "bool", "decimals": 2, "left": 25.7, "top": 64.85, "tag": "640-AG-002" },
+    { "codigo": 170, "unit": "bool", "decimals": 2, "left": 35.21, "top": 17.75, "tag": "640-AG-003" },
+    { "codigo": 183, "unit": "bool", "decimals": 2, "left": 76.24, "top": 65.08, "tag": "640-PP-062" },
+    { "codigo": 180, "unit": "bool", "decimals": 2, "left": 39.2, "top": 80.16, "tag": "640-PP-064" },
+    { "codigo": 172, "unit": "bool", "decimals": 2, "left": 55.4, "top": 32.37, "tag": "640-PP-065" },
+    { "codigo": 173, "unit": "bool", "decimals": 2, "left": 84.99, "top": 12.18, "tag": "640-PP-066" },
+    { "codigo": 174, "unit": "bool", "decimals": 2, "left": 84.88, "top": 25.64, "tag": "640-PP-067" },
+    { "codigo": 175, "unit": "min", "decimals": 2, "left": 87.69, "top": 36.54, "tag": "PP067" },
+    { "codigo": 176, "unit": "seg", "decimals": 2, "left": 87.69, "top": 40.26, "tag": "PP067-SEG" },
+    { "codigo": 171, "unit": "bool", "decimals": 2, "left": 16.2, "top": 6.84, "tag": "HV1170" },
+    { "codigo": 179, "unit": "bool", "decimals": 2, "left": 15.87, "top": 58.58, "tag": "HV1190" }
+  ]
+}

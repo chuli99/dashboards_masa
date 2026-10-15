@@ -1,0 +1,33 @@
+{
+  "title": "ADR Ampliación Adsorción de Carbón",
+  "image": "AdrAmpliacionAdorciondeCarbon.png",
+  "buttons": [
+    { "codigo": 10, "unit": "m3", "decimals": 3, "left": 63.41, "top": 15.48, "tag": "FI885C" },
+    { "codigo": 117, "unit": "ph", "decimals": 2, "left": 20.76, "top": 74.39, "tag": "AI1016C" },
+    { "codigo": 94, "unit": "pct", "decimals": 2, "left": 25.58, "top": 61.13, "tag": "LI883AC" },
+    { "codigo": 248, "unit": "", "decimals": 2, "left": 48.37, "top": 90.33, "tag": "FTI1000C" },
+    { "codigo": 244, "unit": "pct", "decimals": 2, "left": 3.3, "top": 76.92, "tag": "LI1011C" },
+    { "codigo": 239, "unit": "pct", "decimals": 2, "left": 69.72, "top": 70.61, "tag": "LI1012C" },
+    { "codigo": 245, "unit": "pct", "decimals": 2, "left": 18.16, "top": 60.68, "tag": "LI883BC" },
+    { "codigo": 251, "unit": "", "decimals": 2, "left": 81.05, "top": 14.45, "tag": "FIC885C1" },
+    { "codigo": 252, "unit": "", "decimals": 2, "left": 80.97, "top": 17.53, "tag": "FIC885C2" },
+    { "codigo": 230, "unit": "bool", "decimals": 2, "left": 7.7, "top": 49.49, "tag": "610-PP010C" },
+    { "codigo": 142, "unit": "bool", "decimals": 2, "left": 83.71, "top": 82.09, "tag": "610-PP019C" },
+    { "codigo": 243, "unit": "pct", "decimals": 2, "left": 83.28, "top": 72.57, "tag": "610-PP019C2" },
+    { "codigo": 246, "unit": "bool", "decimals": 2, "left": 35.84, "top": 72.75, "tag": "610-PP040C" },
+    { "codigo": 155, "unit": "bool", "decimals": 2, "left": 41.72, "top": 84.98, "tag": "610-PP041C" },
+    { "codigo": 240, "unit": "bool", "decimals": 2, "left": 77.65, "top": 38.86, "tag": "610-SC003" },
+    { "codigo": 250, "unit": "bool", "decimals": 2, "left": 93.29, "top": 90.05, "tag": "610-PS012" },
+    { "codigo": 228, "unit": "bool", "decimals": 2, "left": 21.68, "top": 9.11, "tag": "HV10001E" },
+    { "codigo": 229, "unit": "bool", "decimals": 2, "left": 8.46, "top": 33.58, "tag": "HV10001F" },
+    { "codigo": 231, "unit": "bool", "decimals": 2, "left": 31.02, "top": 16.02, "tag": "HV10002E" },
+    { "codigo": 232, "unit": "bool", "decimals": 2, "left": 21.94, "top": 40.73, "tag": "HV10002F" },
+    { "codigo": 233, "unit": "bool", "decimals": 2, "left": 43.71, "top": 20.77, "tag": "HV10003E" },
+    { "codigo": 234, "unit": "bool", "decimals": 2, "left": 34.38, "top": 49.32, "tag": "HV10003F" },
+    { "codigo": 235, "unit": "bool", "decimals": 2, "left": 55.15, "top": 28.89, "tag": "HV10004E" },
+    { "codigo": 236, "unit": "bool", "decimals": 2, "left": 47.07, "top": 56.92, "tag": "HV10004F" },
+    { "codigo": 238, "unit": "bool", "decimals": 2, "left": 59.3, "top": 65.27, "tag": "HV10005F" },
+    { "codigo": 241, "unit": "bool", "decimals": 2, "left": 92.12, "top": 66.24, "tag": "HV1007E" },
+    { "codigo": 237, "unit": "bool", "decimals": 2, "left": 59.35, "top": 24.18, "tag": "HV1017C" }
+  ]
+}

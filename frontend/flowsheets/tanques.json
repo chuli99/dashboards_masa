@@ -1,0 +1,24 @@
+{
+  "title": "Tanques Solución Rica y Pobre",
+  "image": "Tanques TK1S.png",
+  "buttons": [
+    { "codigo": 94, "unit": "pct", "decimals": 2, "left": 68.87, "top": 19.44, "tag": "LI883AC" },
+    { "codigo": 110, "unit": "lpm", "decimals": 2, "left": 72.72, "top": 6.15, "tag": "CNATK2" },
+    { "codigo": 111, "unit": "lpm", "decimals": 2, "left": 79.46, "top": 6.15, "tag": "CNATK2C" },
+    { "codigo": 67, "unit": "pct", "decimals": 2, "left": 37.27, "top": 82.62, "tag": "LI873" },
+    { "codigo": 117, "unit": "ph", "decimals": 2, "left": 93.32, "top": 93.58, "tag": "AI1016C" },
+    { "codigo": 100, "unit": "pct", "decimals": 2, "left": 84.33, "top": 80.21, "tag": "TK15LI1120" },
+    { "codigo": 99, "unit": "pct", "decimals": 2, "left": 92.07, "top": 77.01, "tag": "TK15LI1120C" },
+    { "codigo": 10, "unit": "m3", "decimals": 2, "left": 79.09, "top": 67.65, "tag": "FI885C" },
+    { "codigo": 52, "unit": "m3", "decimals": 2, "left": 46.5, "top": 71.12, "tag": "FQ873" },
+    { "codigo": 147, "unit": "m3", "decimals": 2, "left": 14.17, "top": 47.29, "tag": "FI880C" },
+    { "codigo": 244, "unit": "pct", "decimals": 2, "left": 87.09, "top": 93.98, "tag": "LI1011C" },
+    { "codigo": 245, "unit": "pct", "decimals": 2, "left": 31.21, "top": 20.82, "tag": "LI883BC" },
+    { "codigo": 150, "unit": "bool", "decimals": 2, "left": 29.3, "top": 68.42, "tag": "610-PP-013C" },
+    { "codigo": 149, "unit": "bool", "decimals": 2, "left": 29.41, "top": 52.71, "tag": "610-PP-014C" },
+    { "codigo": 154, "unit": "bool", "decimals": 2, "left": 72.57, "top": 91.87, "tag": "610-PP-040C" },
+    { "codigo": 155, "unit": "bool", "decimals": 2, "left": 80.47, "top": 91.87, "tag": "610-PP-041C" },
+    { "codigo": 157, "unit": "bool", "decimals": 2, "left": 72, "top": 62.05, "tag": "610-PP-081C" },
+    { "codigo": 148, "unit": "bar", "decimals": 2, "left": 21.51, "top": 45.18, "tag": "PI880C" }
+  ]
+}
