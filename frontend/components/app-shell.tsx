@@ -1,6 +1,14 @@
 'use client';
 
-import { FactoryIcon, Home01Icon, Moon02Icon, PencilEdit02Icon, Sun03Icon } from '@hugeicons/core-free-icons';
+import { Collapsible } from '@base-ui/react/collapsible';
+import {
+  ArrowRight01Icon,
+  FactoryIcon,
+  Home01Icon,
+  Moon02Icon,
+  PencilEdit02Icon,
+  Sun03Icon,
+} from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -18,13 +26,19 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarProvider,
   SidebarRail,
   SidebarTrigger,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { FLOWSHEETS } from '@/flowsheets';
 
 const LOGO_ALT = 'Minas Argentinas S.A. — Gualcamayo';
+
+type Icono = typeof FactoryIcon;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -72,9 +86,51 @@ function Reloj() {
   );
 }
 
-function Item({ href, titulo, icono }: { href: string; titulo: string; icono: typeof FactoryIcon }) {
-  // trailingSlash: true → "/flowsheet/tk1/"; comparación exacta para que tk1 no marque tk1rica
-  const activo = usePathname().replace(/\/$/, '') === href.replace(/\/$/, '');
+// trailingSlash: true → "/flowsheet/tk1/"; comparación exacta para que tk1 no marque tk1rica
+const sinBarra = (p: string) => p.replace(/\/$/, '');
+
+/** Menú desplegable (abierto por defecto). Con la sidebar colapsada, el click la expande y lo abre. */
+function Desplegable({ titulo, icono, items }: { titulo: string; icono: Icono; items: { href: string; titulo: string }[] }) {
+  const pathname = sinBarra(usePathname());
+  const { state, setOpen } = useSidebar();
+  const [abierto, setAbierto] = useState(true);
+  return (
+    <Collapsible.Root open={abierto} onOpenChange={setAbierto} render={<SidebarMenuItem />}>
+      <Collapsible.Trigger
+        render={<SidebarMenuButton tooltip={titulo} />}
+        onClick={(e) => {
+          if (state === 'collapsed') {
+            setOpen(true);
+            setAbierto(true);
+            e.preventBaseUIHandler();
+          }
+        }}
+      >
+        <HugeiconsIcon icon={icono} strokeWidth={2} />
+        <span>{titulo}</span>
+        <HugeiconsIcon
+          icon={ArrowRight01Icon}
+          strokeWidth={2}
+          className="ml-auto transition-transform duration-200 in-data-panel-open:rotate-90"
+        />
+      </Collapsible.Trigger>
+      <Collapsible.Panel>
+        <SidebarMenuSub>
+          {items.map((it) => (
+            <SidebarMenuSubItem key={it.href}>
+              <SidebarMenuSubButton isActive={pathname === sinBarra(it.href)} render={<Link href={it.href} />}>
+                <span>{it.titulo}</span>
+              </SidebarMenuSubButton>
+            </SidebarMenuSubItem>
+          ))}
+        </SidebarMenuSub>
+      </Collapsible.Panel>
+    </Collapsible.Root>
+  );
+}
+
+function Item({ href, titulo, icono }: { href: string; titulo: string; icono: Icono }) {
+  const activo = sinBarra(usePathname()) === sinBarra(href);
   return (
     <SidebarMenuItem>
       <SidebarMenuButton isActive={activo} tooltip={titulo} render={<Link href={href} />}>
@@ -114,11 +170,13 @@ function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>Flowsheets</SidebarGroupLabel>
+          <SidebarGroupLabel>Planta</SidebarGroupLabel>
           <SidebarMenu>
-            {Object.entries(FLOWSHEETS).map(([slug, fs]) => (
-              <Item key={slug} href={`/flowsheet/${slug}/`} titulo={fs.title} icono={FactoryIcon} />
-            ))}
+            <Desplegable
+              titulo="Flowsheets"
+              icono={FactoryIcon}
+              items={Object.entries(FLOWSHEETS).map(([slug, fs]) => ({ href: `/flowsheet/${slug}/`, titulo: fs.title }))}
+            />
           </SidebarMenu>
         </SidebarGroup>
         <SidebarGroup>
