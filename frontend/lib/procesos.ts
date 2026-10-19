@@ -44,7 +44,13 @@ export const PROCESOS: Record<string, Proceso> = {
       },
     ],
   },
-  electrodeposicion: { titulo: 'Electrodeposición', vistas: [] },
+  electrodeposicion: {
+    titulo: 'Electrodeposición',
+    vistas: [
+      { nombre: 'pH TK10', variables: [{ codigo: 370, nombre: 'pH TK10', unit: 'ph', decimals: 2 }] },
+      { nombre: 'Caudal TK10', variables: [{ codigo: 13, nombre: 'Caudal TK10', unit: 'm3', decimals: 3 }] },
+    ],
+  },
 };
 
 /** Proceso al que pertenece una variable (para enlazar desde la vista de la variable). */
