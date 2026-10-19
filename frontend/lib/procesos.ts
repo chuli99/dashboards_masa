@@ -16,7 +16,13 @@ export type Vista = { nombre: string; variables: VariableCapacidad[] };
 export type Proceso = { titulo: string; vistas: Vista[] };
 
 export const PROCESOS: Record<string, Proceso> = {
-  adsorcion: { titulo: 'Adsorción', vistas: [] },
+  adsorcion: {
+    titulo: 'Adsorción',
+    vistas: [
+      { nombre: 'Caudal A+B', variables: [{ codigo: 8, nombre: 'Caudal A+B', unit: 'm3', decimals: 2 }] },
+      { nombre: 'Caudal C+D', variables: [{ codigo: 10, nombre: 'Caudal C+D', unit: 'm3', decimals: 3 }] },
+    ],
+  },
   elucion: {
     titulo: 'Elución',
     vistas: [
