@@ -77,11 +77,77 @@
 .url {
   width: 320px;
 }
-.corto {
-  width: 96px;
+
+/* Panel "Agregar botón" */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
-.tag {
-  width: 200px;
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panelHeader h2 {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.ayuda {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.aviso {
+  color: var(--warning);
+  font-weight: 600;
+}
+.select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* Mismo look que el botón real (Flowsheet.module.css .btn) */
+.preview {
+  align-self: flex-start;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #96d98d;
+  font-family: monospace;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.panelFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
 }
 
 .card {

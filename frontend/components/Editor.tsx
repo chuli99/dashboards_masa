@@ -2,10 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
-import { fetcher, UNIT_SUFFIX, type Variable } from '@/lib/api';
+import { PlusSignIcon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { fetcher } from '@/lib/api';
 import { FLOWSHEETS, IMG_BASE, type FlowsheetData } from '@/flowsheets';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import AgregarBoton from './AgregarBoton';
 import s from './Editor.module.css';
 
 const round = (n: number) => Math.round(n * 100) / 100;
@@ -17,6 +20,7 @@ export default function Editor() {
   const { data: fs = FLOWSHEETS[slug], mutate } = useSWR<FlowsheetData>(key, fetcher, { revalidateOnFocus: false });
   const [selected, setSelected] = useState<number | null>(null);
   const [status, setStatus] = useState('');
+  const [agregando, setAgregando] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
   const imgInput = useRef<HTMLInputElement>(null);
 
@@ -31,31 +35,6 @@ export default function Editor() {
       body: JSON.stringify(next),
     });
     setStatus(res.ok ? `✓ Guardado ${new Date().toLocaleTimeString()}` : `Error al guardar (${res.status})`);
-  };
-
-  // Valida el código contra la tabla Variables; el botón aparece al centro y seleccionado para arrastrarlo
-  const agregar = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const d = new FormData(form);
-    const codigo = Number(d.get('codigo'));
-    try {
-      const v = await fetcher<Variable>(`/api/variables/${codigo}`);
-      const tag = String(d.get('tag')).trim() || v.nombre || String(codigo);
-      const boton = {
-        codigo,
-        unit: String(d.get('unit')),
-        decimals: Number(d.get('decimals')),
-        left: 50,
-        top: 50,
-        tag,
-      };
-      setSelected(fs.buttons.length);
-      form.reset();
-      await update((f) => ({ ...f, buttons: [...f.buttons, boton] }));
-    } catch (err) {
-      setStatus(`Error: ${(err as Error).message}`);
-    }
   };
 
   useEffect(() => {
@@ -148,39 +127,25 @@ export default function Editor() {
           >
             Cargar imagen
           </Button>
+          {!agregando && (
+            <Button onClick={() => setAgregando(true)}>
+              <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} />
+              Agregar botón
+            </Button>
+          )}
         </div>
       </div>
 
-      <form className={s.controles} onSubmit={agregar}>
-        <Input
-          name="codigo"
-          type="number"
-          min={1}
-          required
-          placeholder="Código"
-          aria-label="Código"
-          className={s.corto}
+      {agregando && (
+        <AgregarBoton
+          existentes={fs.buttons}
+          onAgregar={async (b) => {
+            setSelected(fs.buttons.length);
+            await update((f) => ({ ...f, buttons: [...f.buttons, b] }));
+          }}
+          onCerrar={() => setAgregando(false)}
         />
-        <Input name="tag" placeholder="Tag (default: nombre)" aria-label="Tag" className={s.tag} />
-        <select name="unit" aria-label="Unidad" className={s.select} defaultValue="m3">
-          {['bool', ...Object.keys(UNIT_SUFFIX), ''].map((u) => (
-            <option key={u} value={u}>
-              {u || 'sin unidad'}
-            </option>
-          ))}
-        </select>
-        <Input
-          name="decimals"
-          type="number"
-          min={0}
-          max={6}
-          defaultValue={2}
-          aria-label="Decimales"
-          title="Decimales"
-          className={s.corto}
-        />
-        <Button type="submit">Agregar botón</Button>
-      </form>
+      )}
 
       <div className={s.card}>
         <div className={s.canvas} ref={wrap}>
