@@ -63,3 +63,20 @@ class Capacidad(BaseModel):
 
 class Health(BaseModel):
     status: Literal["ok"]
+
+
+class FlowsheetButton(BaseModel):
+    codigo: int
+    unit: str
+    decimals: int
+    left: int | float
+    top: int | float
+    tag: str
+
+
+class Flowsheet(BaseModel):
+    """Mismo formato que frontend/flowsheets/<slug>.json."""
+
+    title: str
+    image: str
+    buttons: list[FlowsheetButton]

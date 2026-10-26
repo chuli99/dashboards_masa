@@ -13,5 +13,5 @@ export async function generateMetadata({ params }: PageProps<'/flowsheet/[slug]'
 
 export default async function Page({ params }: PageProps<'/flowsheet/[slug]'>) {
   const { slug } = await params;
-  return <Flowsheet fs={FLOWSHEETS[slug]} />;
+  return <Flowsheet slug={slug} />;
 }

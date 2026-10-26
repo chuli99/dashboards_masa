@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
 from .database import engine
-from .routers import health, variables
+from .routers import flowsheets, health, variables
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -23,6 +23,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(title="PLC Dashboard API", lifespan=lifespan)
 
 app.include_router(variables.router)
+app.include_router(flowsheets.router)
 app.include_router(health.router)
 
 

@@ -157,7 +157,7 @@ Cada flowsheet es un JSON en `frontend/flowsheets/<slug>.json` (imagen de fondo 
 ### Agregar o mover botones
 
 1. Abrir `/editor/`, elegir el flowsheet y arrastrar los botones (Supr elimina el seleccionado).
-2. **Copiar JSON** → pegarlo en `frontend/flowsheets/<slug>.json`.
+2. Cada cambio se guarda solo en `frontend/flowsheets/<slug>.json` (`PUT /api/flowsheets/<slug>`). Los flowsheets leen ese archivo vía `GET /api/flowsheets/<slug>`, así que en producción se ven sin rebuild (el JSON del bundle queda de fallback). Commitear los JSON modificados.
 3. Para un flowsheet nuevo: crear el JSON e importarlo en `flowsheets/index.ts`. La ruta `/flowsheet/<slug>/` se genera sola en el build.
 
 ## Notas

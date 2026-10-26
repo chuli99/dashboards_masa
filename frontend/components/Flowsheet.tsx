@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import useSWR from 'swr';
 import { fetcher, formatVal } from '@/lib/api';
-import { IMG_BASE, type FlowsheetData } from '@/flowsheets';
+import { FLOWSHEETS, IMG_BASE, type FlowsheetData } from '@/flowsheets';
 import s from './Flowsheet.module.css';
 
-export default function Flowsheet({ fs }: { fs: FlowsheetData }) {
+export default function Flowsheet({ slug }: { slug: string }) {
+  // Posiciones guardadas por el editor sin rebuild; el JSON del bundle sirve de fallback
+  const { data: fs = FLOWSHEETS[slug] } = useSWR<FlowsheetData>(`/api/flowsheets/${slug}`, fetcher);
   const codigos = [...new Set(fs.buttons.map((b) => b.codigo))].join(',');
   const { data } = useSWR<Record<string, number>>(`/api/variables/last?codigos=${codigos}`, fetcher, {
     refreshInterval: 60000,
