@@ -16,6 +16,8 @@ const UNIDADES = [
   ['', 'Sin unidad'],
 ];
 
+const DECIMALES = 2;
+
 type Props = {
   existentes: FlowsheetButton[];
   onAgregar: (b: FlowsheetButton) => Promise<void>;
@@ -27,7 +29,6 @@ export default function AgregarBoton({ existentes, onAgregar, onCerrar }: Props)
   const [codigo, setCodigo] = useState('');
   const [tag, setTag] = useState('');
   const [unit, setUnit] = useState('m3');
-  const [decimals, setDecimals] = useState(2);
   const [guardando, setGuardando] = useState(false);
 
   const {
@@ -46,14 +47,17 @@ export default function AgregarBoton({ existentes, onAgregar, onCerrar }: Props)
     e.preventDefault();
     if (!v) return;
     setGuardando(true);
-    await onAgregar({ codigo: Number(codigo), unit, decimals, left: 50, top: 50, tag: etiqueta });
+    await onAgregar({ codigo: Number(codigo), unit, decimals: DECIMALES, left: 50, top: 50, tag: etiqueta });
     setGuardando(false);
     setCodigo('');
     setTag('');
   };
 
   return (
-    <form className={s.panel} onSubmit={submit}>
+    <form
+      className={`${s.panel} animate-in fade-in-0 slide-in-from-top-2 motion-reduce:animate-none`}
+      onSubmit={submit}
+    >
       <div className={s.panelHeader}>
         <h2>Agregar botón</h2>
         <Button type="button" variant="ghost" size="icon-sm" aria-label="Cerrar" onClick={onCerrar}>
@@ -108,27 +112,10 @@ export default function AgregarBoton({ existentes, onAgregar, onCerrar }: Props)
           <span className={s.ayuda}>On / Off para bombas, válvulas y estados</span>
         </label>
 
-        <label className={s.campo}>
-          <span className={s.label}>Decimales</span>
-          <select
-            className={s.select}
-            value={decimals}
-            disabled={unit === 'bool'}
-            onChange={(e) => setDecimals(Number(e.target.value))}
-          >
-            {[0, 1, 2, 3, 4].map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
-          <span className={s.ayuda}>{unit === 'bool' ? 'No aplica a On / Off' : 'Cifras después de la coma'}</span>
-        </label>
-
         <div className={s.campo}>
           <span className={s.label}>Vista previa</span>
           <span className={s.preview} title={etiqueta}>
-            {valor === undefined ? '–' : formatVal(valor, decimals, unit)}
+            {valor === undefined ? '–' : formatVal(valor, DECIMALES, unit)}
           </span>
           <span className={s.ayuda}>{valor === undefined ? 'Sin valor actual' : 'Con el último valor registrado'}</span>
         </div>

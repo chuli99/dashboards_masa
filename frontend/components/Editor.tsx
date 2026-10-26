@@ -127,12 +127,10 @@ export default function Editor() {
           >
             Cargar imagen
           </Button>
-          {!agregando && (
-            <Button onClick={() => setAgregando(true)}>
-              <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} />
-              Agregar botón
-            </Button>
-          )}
+          <Button aria-expanded={agregando} onClick={() => setAgregando(!agregando)}>
+            <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} />
+            Agregar botón
+          </Button>
         </div>
       </div>
 

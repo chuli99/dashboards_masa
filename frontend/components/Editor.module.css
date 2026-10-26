@@ -102,7 +102,7 @@
 }
 .campos {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
 }
 .campo {
@@ -122,10 +122,6 @@
 .aviso {
   color: var(--warning);
   font-weight: 600;
-}
-.select:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 /* Mismo look que el botón real (Flowsheet.module.css .btn) */
 .preview {
