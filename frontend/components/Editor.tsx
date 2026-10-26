@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/api';
 import { FLOWSHEETS, IMG_BASE, type FlowsheetData } from '@/flowsheets';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import s from './Editor.module.css';
 
 const round = (n: number) => Math.round(n * 100) / 100;
@@ -81,43 +83,59 @@ export default function Editor() {
 
   return (
     <div className={s.page}>
-      <div className={s.toolbar}>
-        <label>Flowsheet:</label>
-        <select
-          value={slug}
-          onChange={(e) => {
-            setSlug(e.target.value);
-            setSelected(null);
-            setStatus('');
-          }}
-        >
-          {Object.entries(FLOWSHEETS).map(([key, fs]) => (
-            <option key={key} value={key}>
-              {fs.title}
-            </option>
-          ))}
-        </select>
-        <label>URL imagen:</label>
-        <input key={fs.image} ref={imgInput} type="text" defaultValue={IMG_BASE + fs.image} />
-        <button onClick={() => update((f) => ({ ...f, image: imgInput.current!.value.trim().replace(IMG_BASE, '') }))}>
-          Cargar imagen
-        </button>
-        <span className={s.status}>{status}</span>
-        <span className={s.hint}>Arrastrá · Click = seleccionar · Supr = eliminar · Se guarda solo</span>
+      <div className={s.barra}>
+        <div className={s.info}>
+          <span className={s.seccion}>Herramientas</span>
+          <h1 className={s.title}>Editor de flowsheets</h1>
+          <span className={s.sub}>
+            {status || 'Arrastrá para mover · Click = seleccionar · Supr = eliminar · Se guarda solo'}
+          </span>
+        </div>
+        <div className={s.controles}>
+          <select
+            className={s.select}
+            aria-label="Flowsheet"
+            value={slug}
+            onChange={(e) => {
+              setSlug(e.target.value);
+              setSelected(null);
+              setStatus('');
+            }}
+          >
+            {Object.entries(FLOWSHEETS).map(([key, fs]) => (
+              <option key={key} value={key}>
+                {fs.title}
+              </option>
+            ))}
+          </select>
+          <Input
+            key={fs.image}
+            ref={imgInput}
+            className={s.url}
+            aria-label="URL imagen"
+            defaultValue={IMG_BASE + fs.image}
+          />
+          <Button
+            variant="outline"
+            onClick={() => update((f) => ({ ...f, image: imgInput.current!.value.trim().replace(IMG_BASE, '') }))}
+          >
+            Cargar imagen
+          </Button>
+        </div>
       </div>
 
-      <div className={s.workspace}>
+      <div className={s.card}>
         <div className={s.canvas} ref={wrap}>
           <img
             src={IMG_BASE + fs.image}
-            alt="Flowsheet"
+            alt={`Flowsheet ${fs.title}`}
             className={s.bg}
             onLoad={(e) =>
               setStatus(
-                `${fs.buttons.length} botones — ${e.currentTarget.naturalWidth}×${e.currentTarget.naturalHeight}`,
+                `${fs.buttons.length} botones · ${e.currentTarget.naturalWidth}×${e.currentTarget.naturalHeight}`,
               )
             }
-            onError={() => setStatus('Error al cargar imagen — CORS o URL inválida')}
+            onError={() => setStatus('Error al cargar imagen: CORS o URL inválida')}
           />
           {fs.buttons.map((b, i) => (
             <div
