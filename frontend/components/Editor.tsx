@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
-import { fetcher } from '@/lib/api';
+import { fetcher, UNIT_SUFFIX, type Variable } from '@/lib/api';
 import { FLOWSHEETS, IMG_BASE, type FlowsheetData } from '@/flowsheets';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,12 +33,37 @@ export default function Editor() {
     setStatus(res.ok ? `✓ Guardado ${new Date().toLocaleTimeString()}` : `Error al guardar (${res.status})`);
   };
 
+  // Valida el código contra la tabla Variables; el botón aparece al centro y seleccionado para arrastrarlo
+  const agregar = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const d = new FormData(form);
+    const codigo = Number(d.get('codigo'));
+    try {
+      const v = await fetcher<Variable>(`/api/variables/${codigo}`);
+      const tag = String(d.get('tag')).trim() || v.nombre || String(codigo);
+      const boton = {
+        codigo,
+        unit: String(d.get('unit')),
+        decimals: Number(d.get('decimals')),
+        left: 50,
+        top: 50,
+        tag,
+      };
+      setSelected(fs.buttons.length);
+      form.reset();
+      await update((f) => ({ ...f, buttons: [...f.buttons, boton] }));
+    } catch (err) {
+      setStatus(`Error: ${(err as Error).message}`);
+    }
+  };
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (
         (e.key === 'Delete' || e.key === 'Backspace') &&
         selected !== null &&
-        !(e.target instanceof HTMLInputElement)
+        !(e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement)
       ) {
         update((f) => ({ ...f, buttons: f.buttons.filter((_, i) => i !== selected) }));
         setSelected(null);
@@ -50,6 +75,8 @@ export default function Editor() {
 
   const startDrag = (e: React.MouseEvent, i: number) => {
     e.preventDefault();
+    // preventDefault evita que el foco salga de un input: sin esto Supr no borraría
+    (document.activeElement as HTMLElement | null)?.blur();
     setSelected(i);
     const rect = wrap.current!.getBoundingClientRect();
     const { left, top } = fs.buttons[i];
@@ -87,13 +114,13 @@ export default function Editor() {
         <div className={s.info}>
           <span className={s.seccion}>Herramientas</span>
           <h1 className={s.title}>Editor de flowsheets</h1>
-          <span className={s.sub}>
+          <span className={`${s.sub} ${status.startsWith('✓') ? s.ok : status.startsWith('Error') ? s.error : ''}`}>
             {status || 'Arrastrá para mover · Click = seleccionar · Supr = eliminar · Se guarda solo'}
           </span>
         </div>
         <div className={s.controles}>
           <select
-            className={s.select}
+            className={`${s.select} ${s.flowsheet}`}
             aria-label="Flowsheet"
             value={slug}
             onChange={(e) => {
@@ -123,6 +150,37 @@ export default function Editor() {
           </Button>
         </div>
       </div>
+
+      <form className={s.controles} onSubmit={agregar}>
+        <Input
+          name="codigo"
+          type="number"
+          min={1}
+          required
+          placeholder="Código"
+          aria-label="Código"
+          className={s.corto}
+        />
+        <Input name="tag" placeholder="Tag (default: nombre)" aria-label="Tag" className={s.tag} />
+        <select name="unit" aria-label="Unidad" className={s.select} defaultValue="m3">
+          {['bool', ...Object.keys(UNIT_SUFFIX), ''].map((u) => (
+            <option key={u} value={u}>
+              {u || 'sin unidad'}
+            </option>
+          ))}
+        </select>
+        <Input
+          name="decimals"
+          type="number"
+          min={0}
+          max={6}
+          defaultValue={2}
+          aria-label="Decimales"
+          title="Decimales"
+          className={s.corto}
+        />
+        <Button type="submit">Agregar botón</Button>
+      </form>
 
       <div className={s.card}>
         <div className={s.canvas} ref={wrap}>

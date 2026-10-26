@@ -34,7 +34,7 @@ export async function fetcher<T>(url: string): Promise<T> {
   return res.json();
 }
 
-const UNIT_SUFFIX: Record<string, string> = {
+export const UNIT_SUFFIX: Record<string, string> = {
   m3: ' m³',
   ph: ' pH',
   pct: ' %',

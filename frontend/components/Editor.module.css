@@ -37,6 +37,14 @@
   font-size: 0.75rem;
   color: var(--muted-foreground);
 }
+.ok {
+  color: var(--primary);
+  font-weight: 600;
+}
+.error {
+  color: var(--destructive);
+  font-weight: 600;
+}
 
 .controles {
   display: flex;
@@ -47,7 +55,7 @@
 /* <select> nativo con el look de ui/input */
 .select {
   height: 2rem;
-  min-width: 220px;
+  min-width: 120px;
   padding: 0 0.625rem;
   border: 1px solid var(--input);
   border-radius: var(--radius-lg);
@@ -63,8 +71,17 @@
   border-color: var(--ring);
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent);
 }
+.flowsheet {
+  min-width: 220px;
+}
 .url {
   width: 320px;
+}
+.corto {
+  width: 96px;
+}
+.tag {
+  width: 200px;
 }
 
 .card {
