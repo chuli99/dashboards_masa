@@ -55,20 +55,10 @@ export const PROCESOS: Record<string, Proceso> = {
   refineria: {
     titulo: 'Refinería',
     vistas: [
-      {
-        nombre: 'Tensión EW1 / EW2',
-        variables: [
-          { codigo: 372, nombre: 'Tensión EW1', unit: 'volt', decimals: 2 },
-          { codigo: 373, nombre: 'Tensión EW2', unit: 'volt', decimals: 2 },
-        ],
-      },
-      {
-        nombre: 'Corriente EW1 / EW2',
-        variables: [
-          { codigo: 374, nombre: 'Corriente EW1', unit: 'amp', decimals: 2 },
-          { codigo: 375, nombre: 'Corriente EW2', unit: 'amp', decimals: 2 },
-        ],
-      },
+      { nombre: 'Tensión EW1', variables: [{ codigo: 372, nombre: 'Tensión EW1', unit: 'volt', decimals: 2 }] },
+      { nombre: 'Tensión EW2', variables: [{ codigo: 373, nombre: 'Tensión EW2', unit: 'volt', decimals: 2 }] },
+      { nombre: 'Corriente EW1', variables: [{ codigo: 374, nombre: 'Corriente EW1', unit: 'amp', decimals: 2 }] },
+      { nombre: 'Corriente EW2', variables: [{ codigo: 375, nombre: 'Corriente EW2', unit: 'amp', decimals: 2 }] },
     ],
   },
 };
