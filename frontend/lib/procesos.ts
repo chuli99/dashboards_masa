@@ -52,6 +52,25 @@ export const PROCESOS: Record<string, Proceso> = {
       { nombre: 'Caudal TK10', variables: [{ codigo: 13, nombre: 'Caudal TK10', unit: 'm3', decimals: 3 }] },
     ],
   },
+  refineria: {
+    titulo: 'Refinería',
+    vistas: [
+      {
+        nombre: 'Tensión EW1 / EW2',
+        variables: [
+          { codigo: 372, nombre: 'Tensión EW1', unit: 'volt', decimals: 2 },
+          { codigo: 373, nombre: 'Tensión EW2', unit: 'volt', decimals: 2 },
+        ],
+      },
+      {
+        nombre: 'Corriente EW1 / EW2',
+        variables: [
+          { codigo: 374, nombre: 'Corriente EW1', unit: 'amp', decimals: 2 },
+          { codigo: 375, nombre: 'Corriente EW2', unit: 'amp', decimals: 2 },
+        ],
+      },
+    ],
+  },
 };
 
 /** Proceso al que pertenece una variable (para enlazar desde la vista de la variable). */

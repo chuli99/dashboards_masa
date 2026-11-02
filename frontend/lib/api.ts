@@ -41,6 +41,8 @@ export const UNIT_SUFFIX: Record<string, string> = {
   bar: ' bar',
   degC: ' °C',
   psi: ' psi',
+  volt: ' V',
+  amp: ' A',
   ntu: ' NTU',
   min: ' min',
   seg: ' s',
