@@ -28,6 +28,7 @@ export const PROCESOS: Record<string, Proceso> = {
     vistas: [
       { nombre: 'Caudal TK7', variables: [{ codigo: 272, nombre: 'Caudal TK7', unit: 'm3', decimals: 2 }] },
       { nombre: 'pH TK7', variables: [{ codigo: 269, nombre: 'pH TK7', unit: 'ph', decimals: 2 }] },
+      { nombre: 'Nivel TK7', variables: [{ codigo: 268, nombre: 'Nivel TK7', unit: 'pct', decimals: 2 }] },
       {
         nombre: 'Temperatura PV1 / PV2',
         variables: [
