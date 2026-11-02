@@ -11,7 +11,8 @@ export type VariableCapacidad = {
   usl?: number;
 };
 
-export type Vista = { nombre: string; variables: VariableCapacidad[] };
+/** mosaico: un gráfico de 24 h por variable, sin semana ni índices. */
+export type Vista = { nombre: string; variables: VariableCapacidad[]; mosaico?: boolean };
 
 export type Proceso = { titulo: string; vistas: Vista[] };
 
@@ -21,6 +22,16 @@ export const PROCESOS: Record<string, Proceso> = {
     vistas: [
       { nombre: 'Caudal A+B', variables: [{ codigo: 364, nombre: 'Caudal A+B', unit: 'm3', decimals: 2 }] },
       { nombre: 'Caudal C+D', variables: [{ codigo: 10, nombre: 'Caudal C+D', unit: 'm3', decimals: 3 }] },
+      {
+        nombre: 'pH',
+        mosaico: true,
+        variables: [
+          { codigo: 116, nombre: 'pH TK02', unit: 'ph', decimals: 2 },
+          { codigo: 117, nombre: 'pH TK02C', unit: 'ph', decimals: 2 },
+          { codigo: 377, nombre: 'pH a Valle Norte', unit: 'ph', decimals: 2 },
+          { codigo: 376, nombre: 'pH a Valle Sur', unit: 'ph', decimals: 2 },
+        ],
+      },
     ],
   },
   elucion: {

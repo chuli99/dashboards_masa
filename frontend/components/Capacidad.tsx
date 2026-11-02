@@ -34,17 +34,20 @@ const fmt = (n: number | null | undefined, d = 2) => (n == null ? '–' : n.toFi
 // ≥ 1,33 capaz · ≥ 1 marginal · < 1 no capaz
 const nivel = (v: number | null | undefined) => (v == null ? '' : v >= 1.33 ? s.ok : v >= 1 ? s.warn : s.bad);
 
-function VentanaCard({ vista, ventana }: { vista: Vista; ventana: Ventana }) {
+function VentanaCard({ vista, ventana, titulo = ventana.titulo }: { vista: Vista; ventana: Ventana; titulo?: string }) {
   const { data, error } = useCapacidades(vista, ventana);
   return (
     <div className={s.card}>
-      <h2>{ventana.titulo}</h2>
+      <h2>{titulo}</h2>
       {error ? (
         <div className={s.loading}>Error: {error.message}</div>
       ) : !data ? (
         <div className={s.loading}>Cargando...</div>
       ) : data.some((d) => d.tiempos.length) ? (
-        <CapacidadChart series={data.map((d, i) => ({ nombre: vista.variables[i].nombre, data: d }))} horas={ventana.horas} />
+        <CapacidadChart
+          series={data.map((d, i) => ({ nombre: vista.variables[i].nombre, data: d }))}
+          horas={ventana.horas}
+        />
       ) : (
         <p className={s.noData}>Sin datos para el período.</p>
       )}
@@ -162,6 +165,27 @@ function SeccionVista({ vista }: { vista: Vista }) {
   );
 }
 
+function Mosaico({ vista }: { vista: Vista }) {
+  return (
+    <section className={s.seccion}>
+      <div className={s.info}>
+        <span className={s.title}>{vista.nombre}</span>
+        <span className={s.sub}>{VENTANAS[0].titulo}</span>
+      </div>
+      <div className={s.mosaico}>
+        {vista.variables.map((v) => (
+          <VentanaCard
+            key={v.codigo}
+            vista={{ nombre: v.nombre, variables: [v] }}
+            ventana={VENTANAS[0]}
+            titulo={`${v.nombre} · Código ${v.codigo}`}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function Capacidad({ proceso }: { proceso: Proceso }) {
   const [indice, setIndice] = useState(0);
   const actual = proceso.vistas[indice];
@@ -186,7 +210,9 @@ export default function Capacidad({ proceso }: { proceso: Proceso }) {
           </div>
         )}
       </div>
-      {actual ? (
+      {actual?.mosaico ? (
+        <Mosaico key={actual.nombre} vista={actual} />
+      ) : actual ? (
         <SeccionVista key={actual.nombre} vista={actual} />
       ) : (
         <p className={s.noData}>Todavía no hay variables definidas para {proceso.titulo}.</p>
